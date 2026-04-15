@@ -1,13 +1,11 @@
 import { motion } from 'motion/react'
 import { Search } from 'lucide-react'
-import { useT } from '~/i18n/context'
-
-function scrollTo(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
+import { router } from '@inertiajs/react'
+import { useT, useLocale } from '~/i18n/context'
 
 export default function Cta() {
   const t = useT()
+  const locale = useLocale()
 
   return (
     <section className="py-[120px] text-center relative overflow-hidden">
@@ -26,7 +24,7 @@ export default function Cta() {
           </h2>
           <p className="text-dim text-[17px] max-w-[480px] mx-auto mb-9">{t.cta.subtitle}</p>
           <button
-            onClick={() => scrollTo('demo')}
+            onClick={() => router.visit(`/${locale}/demo`)}
             className="inline-flex items-center gap-2.5 px-9 py-4 bg-amber-brand hover:bg-amber-400 text-bg-dark rounded-full font-semibold text-[17px] shadow-[0_4px_30px_rgba(245,158,11,0.25)] hover:shadow-[0_8px_50px_rgba(245,158,11,0.4)] hover:-translate-y-0.5 transition-all cursor-pointer"
           >
             <Search className="w-5 h-5" />
