@@ -17,19 +17,49 @@ const de: Translations = {
       'Metadaten, Autor, GPS-Standort, Bearbeitungsverlauf… DocHunt enthüllt alles, was deine Dokumente ohne dein Wissen preisgeben.',
     ctaPrimary: 'Analyse starten',
     ctaSecondary: 'So funktioniert es',
-    stats: { metadata: 'Metadaten', format: 'Aktuelles Format', clientSide: 'Clientseitig', stored: 'Gespeicherte Daten' },
+    stats: {
+      metadata: 'Metadaten',
+      format: 'Aktuelles Format',
+      clientSide: 'Clientseitig',
+      stored: 'Gespeicherte Daten',
+    },
   },
   features: {
     tag: 'Funktionen',
     title: 'Alles, was sich in deinen Dateien versteckt.',
-    subtitle: 'DocHunt analysiert jede Datei tiefgehend, um sensible Informationen zu extrahieren, die du nie vermutet hättest.',
+    subtitle:
+      'DocHunt analysiert jede Datei tiefgehend, um sensible Informationen zu extrahieren, die du nie vermutet hättest.',
     items: [
-      { title: 'Autorenidentität', description: 'Vollständiger Name, Organisation, verwendete Software. Alles, was den Ersteller des Dokuments identifiziert.' },
-      { title: 'Geolokalisierung', description: 'GPS-Koordinaten in Bildern und Dokumenten. Finde heraus, wo genau eine Datei erstellt wurde.' },
-      { title: 'Vollständiger Verlauf', description: 'Erstellungs-, Änderungs- und Druckdaten. Verfolge die gesamte Chronologie des Dokuments.' },
-      { title: 'Sicherheitsstufe', description: 'Verschlüsselung, Berechtigungen, Zugriffsbeschränkungen. Bewerte den Schutzgrad deiner Dateien.' },
-      { title: 'Links & Ressourcen', description: 'Eingebettete URLs, Schriften, Bilder, angehängte Dateien. Entdecke alle versteckten Abhängigkeiten.' },
-      { title: 'Risikobewertung', description: 'Gesamtbewertung, wie stark deine persönlichen Daten in der Datei exponiert sind.' },
+      {
+        title: 'Autorenidentität',
+        description:
+          'Vollständiger Name, Organisation, verwendete Software. Alles, was den Ersteller des Dokuments identifiziert.',
+      },
+      {
+        title: 'Geolokalisierung',
+        description:
+          'GPS-Koordinaten in Bildern und Dokumenten. Finde heraus, wo genau eine Datei erstellt wurde.',
+      },
+      {
+        title: 'Vollständiger Verlauf',
+        description:
+          'Erstellungs-, Änderungs- und Druckdaten. Verfolge die gesamte Chronologie des Dokuments.',
+      },
+      {
+        title: 'Sicherheitsstufe',
+        description:
+          'Verschlüsselung, Berechtigungen, Zugriffsbeschränkungen. Bewerte den Schutzgrad deiner Dateien.',
+      },
+      {
+        title: 'Links & Ressourcen',
+        description:
+          'Eingebettete URLs, Schriften, Bilder, angehängte Dateien. Entdecke alle versteckten Abhängigkeiten.',
+      },
+      {
+        title: 'Risikobewertung',
+        description:
+          'Gesamtbewertung, wie stark deine persönlichen Daten in der Datei exponiert sind.',
+      },
     ],
   },
   howItWorks: {
@@ -37,9 +67,19 @@ const de: Translations = {
     title: 'Einfach. Schnell. Privat.',
     subtitle: 'Drei Schritte, um die sensiblen Daten in jeder Datei aufzudecken.',
     steps: [
-      { title: 'Datei hochladen', description: 'Drag & Drop oder PDF auswählen. Kein Konto erforderlich.' },
-      { title: 'Sofortige Analyse', description: 'DocHunt scannt Metadaten und eingebettete Daten in Sekunden.' },
-      { title: 'Detaillierter Bericht', description: 'Vollständiger Bericht mit Risikobewertung und Empfehlungen zum Schutz deiner Daten.' },
+      {
+        title: 'Datei hochladen',
+        description: 'Drag & Drop oder PDF auswählen. Kein Konto erforderlich.',
+      },
+      {
+        title: 'Sofortige Analyse',
+        description: 'DocHunt scannt Metadaten und eingebettete Daten in Sekunden.',
+      },
+      {
+        title: 'Detaillierter Bericht',
+        description:
+          'Vollständiger Bericht mit Risikobewertung und Empfehlungen zum Schutz deiner Daten.',
+      },
     ],
   },
   demo: {
@@ -47,7 +87,12 @@ const de: Translations = {
     title: 'Überzeug dich selbst.',
     subtitle: 'Lade eine Datei hoch und entdecke sofort die Informationen, die sie preisgibt.',
     upload: { title: 'Datei hier ablegen', subtitle: 'oder klicken zum Auswählen' },
-    result: { status: 'Analysiert', sensitiveCount: '4 sensible Daten gefunden', export: 'Exportieren', clean: 'Bereinigen' },
+    result: {
+      status: 'Analysiert',
+      sensitiveCount: '4 sensible Daten gefunden',
+      export: 'Exportieren',
+      clean: 'Bereinigen',
+    },
   },
   formats: {
     tag: 'Kompatibilität',
@@ -65,12 +110,34 @@ const de: Translations = {
     tag: 'FAQ',
     title: 'Häufig gestellte Fragen',
     items: [
-      { question: 'Werden meine Dateien gespeichert?', answer: 'Nein. Die Analyse ist flüchtig — nach der Verarbeitung wird keine Datei aufbewahrt.' },
-      { question: 'Ist es wirklich kostenlos?', answer: 'Ja, DocHunt ist während der Beta kostenlos. Eine Pro-Version mit erweiterten Funktionen ist geplant.' },
-      { question: 'Welche Formate werden unterstützt?', answer: 'Derzeit PDF. DOCX, Bilder (EXIF) und XLSX kommen bald.' },
-      { question: 'Was sind sensible Daten?', answer: 'Alle Informationen, die den Autor identifizieren, den Erstellungsort enthüllen oder die Vertraulichkeit gefährden.' },
-      { question: 'Kann ich meine Dateien bereinigen?', answer: 'Die Bereinigungsfunktion für Metadaten ist in Entwicklung und wird bald verfügbar sein.' },
-      { question: 'Was ist der Tech-Stack?', answer: 'AdonisJS 6, TypeScript, Inertia.js mit React — modern und leistungsstark.' },
+      {
+        question: 'Werden meine Dateien gespeichert?',
+        answer:
+          'Nein. Die Analyse ist flüchtig — nach der Verarbeitung wird keine Datei aufbewahrt.',
+      },
+      {
+        question: 'Ist es wirklich kostenlos?',
+        answer:
+          'Ja, DocHunt ist während der Beta kostenlos. Eine Pro-Version mit erweiterten Funktionen ist geplant.',
+      },
+      {
+        question: 'Welche Formate werden unterstützt?',
+        answer: 'Derzeit PDF. DOCX, Bilder (EXIF) und XLSX kommen bald.',
+      },
+      {
+        question: 'Was sind sensible Daten?',
+        answer:
+          'Alle Informationen, die den Autor identifizieren, den Erstellungsort enthüllen oder die Vertraulichkeit gefährden.',
+      },
+      {
+        question: 'Kann ich meine Dateien bereinigen?',
+        answer:
+          'Die Bereinigungsfunktion für Metadaten ist in Entwicklung und wird bald verfügbar sein.',
+      },
+      {
+        question: 'Was ist der Tech-Stack?',
+        answer: 'AdonisJS 6, TypeScript, Inertia.js mit React — modern und leistungsstark.',
+      },
     ],
   },
   cta: {
@@ -80,7 +147,8 @@ const de: Translations = {
     button: 'Meine erste Datei analysieren',
   },
   footer: {
-    description: 'Enthülle die verborgenen Daten in deinen Dateien. Open Source, schnell und datenschutzfreundlich.',
+    description:
+      'Enthülle die verborgenen Daten in deinen Dateien. Open Source, schnell und datenschutzfreundlich.',
     columns: {
       product: { title: 'Produkt', links: ['Funktionen', 'Demo', 'Formate', 'Changelog'] },
       resources: { title: 'Ressourcen', links: ['Dokumentation', 'API', 'GitHub'] },
@@ -88,6 +156,7 @@ const de: Translations = {
     },
     builtWith: 'Gebaut mit AdonisJS, TypeScript & Inertia.js',
   },
+  backToTop: 'Nach oben',
 }
 
 export default de

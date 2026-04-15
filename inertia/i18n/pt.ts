@@ -17,19 +17,48 @@ const pt: Translations = {
       'Metadados, autor, geolocalização, histórico de edições… DocHunt revela tudo o que seus documentos expõem sem que você saiba.',
     ctaPrimary: 'Iniciar análise',
     ctaSecondary: 'Como funciona',
-    stats: { metadata: 'Metadados', format: 'Formato atual', clientSide: 'Lado cliente', stored: 'Dados armazenados' },
+    stats: {
+      metadata: 'Metadados',
+      format: 'Formato atual',
+      clientSide: 'Lado cliente',
+      stored: 'Dados armazenados',
+    },
   },
   features: {
     tag: 'Funcionalidades',
     title: 'Tudo que se esconde nos seus arquivos.',
-    subtitle: 'DocHunt analisa profundamente cada arquivo para extrair informações sensíveis que você nunca imaginou existirem.',
+    subtitle:
+      'DocHunt analisa profundamente cada arquivo para extrair informações sensíveis que você nunca imaginou existirem.',
     items: [
-      { title: 'Identidade do autor', description: 'Nome completo, organização, software utilizado. Tudo que identifica o criador do documento.' },
-      { title: 'Geolocalização', description: 'Coordenadas GPS em imagens e documentos. Descubra exatamente onde um arquivo foi criado.' },
-      { title: 'Histórico completo', description: 'Datas de criação, modificação e impressão. Reconstrua a cronologia completa do documento.' },
-      { title: 'Nível de segurança', description: 'Criptografia, permissões, restrições de acesso. Avalie o nível de proteção dos seus arquivos.' },
-      { title: 'Links e recursos', description: 'URLs embutidas, fontes, imagens, arquivos anexados. Descubra todas as dependências ocultas.' },
-      { title: 'Pontuação de risco', description: 'Avaliação global do nível de exposição dos seus dados pessoais no arquivo.' },
+      {
+        title: 'Identidade do autor',
+        description:
+          'Nome completo, organização, software utilizado. Tudo que identifica o criador do documento.',
+      },
+      {
+        title: 'Geolocalização',
+        description:
+          'Coordenadas GPS em imagens e documentos. Descubra exatamente onde um arquivo foi criado.',
+      },
+      {
+        title: 'Histórico completo',
+        description:
+          'Datas de criação, modificação e impressão. Reconstrua a cronologia completa do documento.',
+      },
+      {
+        title: 'Nível de segurança',
+        description:
+          'Criptografia, permissões, restrições de acesso. Avalie o nível de proteção dos seus arquivos.',
+      },
+      {
+        title: 'Links e recursos',
+        description:
+          'URLs embutidas, fontes, imagens, arquivos anexados. Descubra todas as dependências ocultas.',
+      },
+      {
+        title: 'Pontuação de risco',
+        description: 'Avaliação global do nível de exposição dos seus dados pessoais no arquivo.',
+      },
     ],
   },
   howItWorks: {
@@ -37,9 +66,19 @@ const pt: Translations = {
     title: 'Simples. Rápido. Privado.',
     subtitle: 'Três etapas para revelar os dados sensíveis de qualquer arquivo.',
     steps: [
-      { title: 'Envie seu arquivo', description: 'Arraste e solte ou selecione um PDF. Sem conta ou cadastro.' },
-      { title: 'Análise instantânea', description: 'DocHunt escaneia metadados e dados embutidos em segundos.' },
-      { title: 'Relatório detalhado', description: 'Relatório completo com pontuação de risco e recomendações para proteger seus dados.' },
+      {
+        title: 'Envie seu arquivo',
+        description: 'Arraste e solte ou selecione um PDF. Sem conta ou cadastro.',
+      },
+      {
+        title: 'Análise instantânea',
+        description: 'DocHunt escaneia metadados e dados embutidos em segundos.',
+      },
+      {
+        title: 'Relatório detalhado',
+        description:
+          'Relatório completo com pontuação de risco e recomendações para proteger seus dados.',
+      },
     ],
   },
   demo: {
@@ -47,7 +86,12 @@ const pt: Translations = {
     title: 'Veja por si mesmo.',
     subtitle: 'Faça upload de um arquivo e descubra imediatamente as informações que ele expõe.',
     upload: { title: 'Arraste seu arquivo aqui', subtitle: 'ou clique para selecionar' },
-    result: { status: 'Analisado', sensitiveCount: '4 dados sensíveis detectados', export: 'Exportar', clean: 'Limpar' },
+    result: {
+      status: 'Analisado',
+      sensitiveCount: '4 dados sensíveis detectados',
+      export: 'Exportar',
+      clean: 'Limpar',
+    },
   },
   formats: {
     tag: 'Compatibilidade',
@@ -65,12 +109,33 @@ const pt: Translations = {
     tag: 'FAQ',
     title: 'Perguntas frequentes',
     items: [
-      { question: 'Meus arquivos são armazenados?', answer: 'Não. A análise é efêmera — nenhum arquivo é mantido após o processamento.' },
-      { question: 'É realmente gratuito?', answer: 'Sim, DocHunt é gratuito durante a beta. Uma versão Pro com recursos avançados está planejada.' },
-      { question: 'Quais formatos são suportados?', answer: 'Atualmente PDF. DOCX, imagens (EXIF) e XLSX chegam em breve.' },
-      { question: 'O que são dados sensíveis?', answer: 'Qualquer informação que identifique o autor, revele o local de criação ou comprometa a confidencialidade.' },
-      { question: 'Posso limpar meus arquivos?', answer: 'A função de limpeza de metadados está em desenvolvimento e estará disponível em breve.' },
-      { question: 'Qual é a stack técnica?', answer: 'AdonisJS 6, TypeScript, Inertia.js com React — moderno e performático.' },
+      {
+        question: 'Meus arquivos são armazenados?',
+        answer: 'Não. A análise é efêmera — nenhum arquivo é mantido após o processamento.',
+      },
+      {
+        question: 'É realmente gratuito?',
+        answer:
+          'Sim, DocHunt é gratuito durante a beta. Uma versão Pro com recursos avançados está planejada.',
+      },
+      {
+        question: 'Quais formatos são suportados?',
+        answer: 'Atualmente PDF. DOCX, imagens (EXIF) e XLSX chegam em breve.',
+      },
+      {
+        question: 'O que são dados sensíveis?',
+        answer:
+          'Qualquer informação que identifique o autor, revele o local de criação ou comprometa a confidencialidade.',
+      },
+      {
+        question: 'Posso limpar meus arquivos?',
+        answer:
+          'A função de limpeza de metadados está em desenvolvimento e estará disponível em breve.',
+      },
+      {
+        question: 'Qual é a stack técnica?',
+        answer: 'AdonisJS 6, TypeScript, Inertia.js com React — moderno e performático.',
+      },
     ],
   },
   cta: {
@@ -80,7 +145,8 @@ const pt: Translations = {
     button: 'Analisar meu primeiro arquivo',
   },
   footer: {
-    description: 'Revele os dados ocultos dos seus arquivos. Open source, rápido e respeitoso com sua privacidade.',
+    description:
+      'Revele os dados ocultos dos seus arquivos. Open source, rápido e respeitoso com sua privacidade.',
     columns: {
       product: { title: 'Produto', links: ['Funcionalidades', 'Demo', 'Formatos', 'Changelog'] },
       resources: { title: 'Recursos', links: ['Documentação', 'API', 'GitHub'] },
@@ -88,6 +154,7 @@ const pt: Translations = {
     },
     builtWith: 'Construído com AdonisJS, TypeScript & Inertia.js',
   },
+  backToTop: 'Voltar ao topo',
 }
 
 export default pt
