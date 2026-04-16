@@ -11,10 +11,10 @@ import {
 } from 'lucide-react'
 import { useT } from '~/i18n/context'
 
-const GITHUB_REPO = 'https://github.com/st47k4/DocHunt'
-const GITHUB_ISSUES = 'https://github.com/st47k4/DocHunt/issues'
-const GITHUB_PRS = 'https://github.com/st47k4/DocHunt/pulls'
-const GITHUB_FORK = 'https://github.com/st47k4/DocHunt/fork'
+const GITHUB_REPO = 'https://github.com/Sentrak/DocHunt'
+const GITHUB_ISSUES = 'https://github.com/Sentrak/DocHunt/issues'
+const GITHUB_PRS = 'https://github.com/Sentrak/DocHunt/pulls'
+const GITHUB_FORK = 'https://github.com/Sentrak/DocHunt/fork'
 
 const STACK = [
   {
@@ -277,7 +277,7 @@ export default function Community() {
               className="inline-flex items-center gap-2.5 px-8 py-4 bg-amber-brand hover:bg-amber-400 text-bg-dark rounded-full font-bold text-lg transition-all hover:shadow-[0_0_40px_rgba(245,158,11,0.5)] hover:-translate-y-px"
             >
               <GitBranch className="w-5 h-5" />
-              st47k4/DocHunt
+              Sentrak/DocHunt
             </a>
           </motion.div>
         </div>
