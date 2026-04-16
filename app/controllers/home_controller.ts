@@ -37,4 +37,16 @@ export default class HomeController {
     const locale = params.locale as Locale
     return inertia.render('community', { locale })
   }
+
+  /** GET /:locale/privacy */
+  async privacy({ inertia, params }: HttpContext) {
+    const locale = params.locale as Locale
+    return inertia.render('privacy', { locale })
+  }
+
+  /** GET /:locale/terms */
+  async terms({ inertia, params }: HttpContext) {
+    const locale = params.locale as Locale
+    return inertia.render('terms', { locale })
+  }
 }

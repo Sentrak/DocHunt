@@ -19,7 +19,7 @@ export default function Footer() {
     {
       title: t.footer.columns.legal.title,
       links: t.footer.columns.legal.links,
-      hrefs: ['#', '#', '#'],
+      hrefs: [`/${locale}/privacy`, `/${locale}/terms`, 'mailto:legal@sentrak.info'],
     },
   ]
 
@@ -40,11 +40,16 @@ export default function Footer() {
           <div className="flex gap-14 flex-wrap">
             {columns.map((col) => (
               <div key={col.title}>
-                <h5 className="text-[11px] uppercase tracking-[2px] text-mute font-semibold mb-4">{col.title}</h5>
+                <h5 className="text-[11px] uppercase tracking-[2px] text-mute font-semibold mb-4">
+                  {col.title}
+                </h5>
                 <ul className="space-y-2">
                   {col.links.map((label, i) => (
                     <li key={label}>
-                      <a href={col.hrefs[i]} className="text-dim hover:text-cream text-sm transition-colors">
+                      <a
+                        href={col.hrefs[i]}
+                        className="text-dim hover:text-cream text-sm transition-colors"
+                      >
                         {label}
                       </a>
                     </li>

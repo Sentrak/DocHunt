@@ -93,6 +93,20 @@ export interface Translations {
     openSubtitle: string
     openItems: Array<{ title: string; description: string }>
   }
+  privacyPage: {
+    badge: string
+    title: string
+    subtitle: string
+    lastUpdated: string
+    sections: Array<{ title: string; content: string }>
+  }
+  termsPage: {
+    badge: string
+    title: string
+    subtitle: string
+    lastUpdated: string
+    sections: Array<{ title: string; content: string }>
+  }
   backToTop: string
   footer: {
     description: string
