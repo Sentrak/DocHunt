@@ -7,9 +7,7 @@ interface Props {
 }
 
 export default function FaqPage(_props: Props) {
-  return (
-    <Faq />
-  )
+  return <Faq />
 }
 
 FaqPage.layout = (page: ReactNode) => <LandingLayout>{page}</LandingLayout>

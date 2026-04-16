@@ -23,7 +23,9 @@ export default function Formats() {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="text-center mb-16"
         >
-          <p className="font-mono text-xs uppercase tracking-[3px] text-amber-brand mb-4">{t.formats.tag}</p>
+          <p className="font-mono text-xs uppercase tracking-[3px] text-amber-brand mb-4">
+            {t.formats.tag}
+          </p>
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">{t.formats.title}</h2>
           <p className="text-dim text-[17px] max-w-[560px] mx-auto">{t.formats.subtitle}</p>
         </motion.div>

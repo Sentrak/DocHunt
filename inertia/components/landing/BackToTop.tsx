@@ -21,7 +21,10 @@ export default function BackToTop() {
     <button
       onClick={() => {
         window.scrollTo({ top: 0, behavior: 'smooth' })
-        ;(document.scrollingElement ?? document.documentElement).scrollTo({ top: 0, behavior: 'smooth' })
+        ;(document.scrollingElement ?? document.documentElement).scrollTo({
+          top: 0,
+          behavior: 'smooth',
+        })
       }}
       aria-label={t.backToTop}
       style={{

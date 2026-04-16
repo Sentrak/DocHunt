@@ -1,23 +1,82 @@
 import { motion } from 'motion/react'
-import { GitBranch, CircleDot, GitPullRequest, Eye, GitFork, Layers, ShieldCheck, Users } from 'lucide-react'
+import {
+  GitBranch,
+  CircleDot,
+  GitPullRequest,
+  Eye,
+  GitFork,
+  Layers,
+  ShieldCheck,
+  Users,
+} from 'lucide-react'
 import { useT } from '~/i18n/context'
 
-const GITHUB_REPO   = 'https://github.com/st47k4/DocHunt'
+const GITHUB_REPO = 'https://github.com/st47k4/DocHunt'
 const GITHUB_ISSUES = 'https://github.com/st47k4/DocHunt/issues'
-const GITHUB_PRS    = 'https://github.com/st47k4/DocHunt/pulls'
-const GITHUB_FORK   = 'https://github.com/st47k4/DocHunt/fork'
+const GITHUB_PRS = 'https://github.com/st47k4/DocHunt/pulls'
+const GITHUB_FORK = 'https://github.com/st47k4/DocHunt/fork'
 
 const STACK = [
-  { name: 'AdonisJS 6', role: 'Backend / API', color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' },
-  { name: 'TypeScript', role: 'Langage', color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
-  { name: 'React 19', role: 'Frontend', color: 'text-cyan-400', bg: 'bg-cyan-500/10 border-cyan-500/20' },
-  { name: 'Inertia.js', role: 'SSR/CSR hybride', color: 'text-violet-400', bg: 'bg-violet-500/10 border-violet-500/20' },
-  { name: 'TailwindCSS 4', role: 'Styles', color: 'text-sky-400', bg: 'bg-sky-500/10 border-sky-500/20' },
-  { name: 'FastAPI', role: 'Micro-service Python', color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/20' },
-  { name: 'pikepdf', role: 'Analyse PDF', color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/20' },
-  { name: 'spaCy', role: 'NER / NLP', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
-  { name: 'Docker', role: 'Infrastructure', color: 'text-blue-300', bg: 'bg-blue-400/10 border-blue-400/20' },
-  { name: 'SQLite', role: 'Base de données', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
+  {
+    name: 'AdonisJS 6',
+    role: 'Backend / API',
+    color: 'text-purple-400',
+    bg: 'bg-purple-500/10 border-purple-500/20',
+  },
+  {
+    name: 'TypeScript',
+    role: 'Langage',
+    color: 'text-blue-400',
+    bg: 'bg-blue-500/10 border-blue-500/20',
+  },
+  {
+    name: 'React 19',
+    role: 'Frontend',
+    color: 'text-cyan-400',
+    bg: 'bg-cyan-500/10 border-cyan-500/20',
+  },
+  {
+    name: 'Inertia.js',
+    role: 'SSR/CSR hybride',
+    color: 'text-violet-400',
+    bg: 'bg-violet-500/10 border-violet-500/20',
+  },
+  {
+    name: 'TailwindCSS 4',
+    role: 'Styles',
+    color: 'text-sky-400',
+    bg: 'bg-sky-500/10 border-sky-500/20',
+  },
+  {
+    name: 'FastAPI',
+    role: 'Micro-service Python',
+    color: 'text-green-400',
+    bg: 'bg-green-500/10 border-green-500/20',
+  },
+  {
+    name: 'pikepdf',
+    role: 'Analyse PDF',
+    color: 'text-orange-400',
+    bg: 'bg-orange-500/10 border-orange-500/20',
+  },
+  {
+    name: 'spaCy',
+    role: 'NER / NLP',
+    color: 'text-amber-400',
+    bg: 'bg-amber-500/10 border-amber-500/20',
+  },
+  {
+    name: 'Docker',
+    role: 'Infrastructure',
+    color: 'text-blue-300',
+    bg: 'bg-blue-400/10 border-blue-400/20',
+  },
+  {
+    name: 'SQLite',
+    role: 'Base de données',
+    color: 'text-emerald-400',
+    bg: 'bg-emerald-500/10 border-emerald-500/20',
+  },
 ]
 
 const CARD_ICONS = [CircleDot, GitPullRequest, GitFork]
@@ -40,14 +99,13 @@ export default function Community() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           >
-            <p className="font-mono text-xs uppercase tracking-[3px] text-amber-brand mb-6">{c.badge}</p>
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
-              {c.title}{' '}
-              <span className="text-amber-brand">{c.highlight}</span>
-            </h1>
-            <p className="text-dim text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-              {c.subtitle}
+            <p className="font-mono text-xs uppercase tracking-[3px] text-amber-brand mb-6">
+              {c.badge}
             </p>
+            <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
+              {c.title} <span className="text-amber-brand">{c.highlight}</span>
+            </h1>
+            <p className="text-dim text-xl max-w-2xl mx-auto mb-10 leading-relaxed">{c.subtitle}</p>
 
             <div className="flex flex-wrap items-center justify-center gap-4">
               <a
@@ -102,14 +160,18 @@ export default function Community() {
                   transition={{ duration: 0.5, delay: i * 0.1 }}
                   className="group bg-bg-card border border-edge hover:border-amber-brand/50 rounded-[16px] p-7 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
                 >
-                  <div className={`w-11 h-11 rounded-xl bg-bg-secondary border border-edge flex items-center justify-center ${CARD_COLORS[i]}`}>
+                  <div
+                    className={`w-11 h-11 rounded-xl bg-bg-secondary border border-edge flex items-center justify-center ${CARD_COLORS[i]}`}
+                  >
                     <Icon className="w-5 h-5" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-cream mb-2">{card.title}</h3>
                     <p className="text-dim text-sm leading-relaxed">{card.description}</p>
                   </div>
-                  <span className={`text-sm font-medium mt-auto group-hover:underline ${CARD_COLORS[i]}`}>
+                  <span
+                    className={`text-sm font-medium mt-auto group-hover:underline ${CARD_COLORS[i]}`}
+                  >
                     {card.cta} →
                   </span>
                 </motion.a>

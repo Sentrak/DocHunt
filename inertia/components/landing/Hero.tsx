@@ -29,12 +29,18 @@ export default function Hero() {
       <div className="absolute -top-52 left-1/2 -translate-x-1/2 w-[900px] h-[900px] bg-[radial-gradient(circle,rgba(245,158,11,0.15)_0%,transparent_60%)] pointer-events-none" />
 
       <div className="relative max-w-6xl mx-auto px-6">
-        <motion.div {...fadeUp(0)} className="inline-flex items-center gap-2 px-4 py-1.5 bg-bg-card border border-edge rounded-full text-sm font-medium text-amber-brand mb-8">
+        <motion.div
+          {...fadeUp(0)}
+          className="inline-flex items-center gap-2 px-4 py-1.5 bg-bg-card border border-edge rounded-full text-sm font-medium text-amber-brand mb-8"
+        >
           <span className="w-1.5 h-1.5 rounded-full bg-amber-brand animate-pulse" />
           {t.hero.badge}
         </motion.div>
 
-        <motion.h1 {...fadeUp(0.1)} className="text-5xl md:text-[76px] font-extrabold tracking-[-2px] leading-[1.05] mb-6">
+        <motion.h1
+          {...fadeUp(0.1)}
+          className="text-5xl md:text-[76px] font-extrabold tracking-[-2px] leading-[1.05] mb-6"
+        >
           {t.hero.titleStart}{' '}
           <span className="bg-gradient-to-r from-amber-brand via-amber-400 to-amber-dim bg-clip-text text-transparent">
             {t.hero.titleHighlight}
@@ -65,9 +71,15 @@ export default function Hero() {
         </motion.div>
 
         {/* Stats */}
-        <motion.div {...fadeUp(0.4)} className="mt-20 max-w-2xl mx-auto grid grid-cols-2 sm:grid-cols-4 rounded-2xl overflow-hidden border border-edge">
+        <motion.div
+          {...fadeUp(0.4)}
+          className="mt-20 max-w-2xl mx-auto grid grid-cols-2 sm:grid-cols-4 rounded-2xl overflow-hidden border border-edge"
+        >
           {stats.map((s, i) => (
-            <div key={i} className="bg-bg-secondary px-5 py-7 text-center border-r border-edge last:border-r-0">
+            <div
+              key={i}
+              className="bg-bg-secondary px-5 py-7 text-center border-r border-edge last:border-r-0"
+            >
               <div className="font-mono text-[28px] font-bold text-amber-brand">{s.value}</div>
               <div className="text-[11px] text-mute uppercase tracking-widest mt-1">{s.label}</div>
             </div>
