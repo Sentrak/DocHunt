@@ -88,10 +88,17 @@ const de: Translations = {
     tag: 'Ausprobieren',
     title: 'Überzeug dich selbst.',
     subtitle: 'Lade eine Datei hoch und entdecke sofort die Informationen, die sie preisgibt.',
+    tabs: { pdf: 'PDF', image: 'Bild' },
     upload: {
       title: 'Datei hier ablegen',
       subtitle: 'oder klicken zum Auswählen',
       pdfOnly: 'Nur PDF · max 20 MB',
+      dragging: 'Loslassen zum Analysieren',
+    },
+    imageUpload: {
+      title: 'Bild hier ablegen',
+      subtitle: 'oder klicken zum Auswählen',
+      formats: 'JPEG, PNG, WebP, GIF, ICO · max 20 MB',
       dragging: 'Loslassen zum Analysieren',
     },
     result: {

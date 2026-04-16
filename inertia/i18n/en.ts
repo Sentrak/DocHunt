@@ -86,10 +86,17 @@ const en: Translations = {
     tag: 'Try it',
     title: 'See for yourself.',
     subtitle: 'Upload a file and instantly discover the information it exposes.',
+    tabs: { pdf: 'PDF', image: 'Image' },
     upload: {
       title: 'Drop your file here',
       subtitle: 'or click to browse',
       pdfOnly: 'PDF only · max 20 MB',
+      dragging: 'Drop to analyze',
+    },
+    imageUpload: {
+      title: 'Drop your image here',
+      subtitle: 'or click to browse',
+      formats: 'JPEG, PNG, WebP, GIF, ICO · max 20 MB',
       dragging: 'Drop to analyze',
     },
     result: {

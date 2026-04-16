@@ -87,10 +87,17 @@ const pt: Translations = {
     tag: 'Experimente',
     title: 'Veja por si mesmo.',
     subtitle: 'Faça upload de um arquivo e descubra imediatamente as informações que ele expõe.',
+    tabs: { pdf: 'PDF', image: 'Imagem' },
     upload: {
       title: 'Arraste seu arquivo aqui',
       subtitle: 'ou clique para selecionar',
       pdfOnly: 'Apenas PDF · máx 20 MB',
+      dragging: 'Solte para analisar',
+    },
+    imageUpload: {
+      title: 'Arraste sua imagem aqui',
+      subtitle: 'ou clique para selecionar',
+      formats: 'JPEG, PNG, WebP, GIF, ICO · máx 20 MB',
       dragging: 'Solte para analisar',
     },
     result: {

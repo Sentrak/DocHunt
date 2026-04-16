@@ -47,10 +47,17 @@ const zh: Translations = {
     tag: '试用',
     title: '亲自体验。',
     subtitle: '上传文件，立即发现它所暴露的信息。',
+    tabs: { pdf: 'PDF', image: '图片' },
     upload: {
       title: '将文件拖到此处',
       subtitle: '或点击浏览',
       pdfOnly: '仅限PDF · 最大20 MB',
+      dragging: '释放以分析',
+    },
+    imageUpload: {
+      title: '将图片拖到此处',
+      subtitle: '或点击浏览',
+      formats: 'JPEG, PNG, WebP, GIF, ICO · 最大20 MB',
       dragging: '释放以分析',
     },
     result: {

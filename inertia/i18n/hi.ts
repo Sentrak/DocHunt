@@ -85,10 +85,17 @@ const hi: Translations = {
     tag: 'आज़माएं',
     title: 'खुद देखें।',
     subtitle: 'एक फ़ाइल अपलोड करें और तुरंत जानें कि वह क्या जानकारी उजागर करती है।',
+    tabs: { pdf: 'PDF', image: 'छवि' },
     upload: {
       title: 'यहाँ अपनी फ़ाइल डालें',
       subtitle: 'या ब्राउज़ करने के लिए क्लिक करें',
       pdfOnly: 'केवल PDF · अधिकतम 20 MB',
+      dragging: 'विश्लेषण के लिए छोड़ें',
+    },
+    imageUpload: {
+      title: 'यहाँ अपनी छवि डालें',
+      subtitle: 'या ब्राउज़ करने के लिए क्लिक करें',
+      formats: 'JPEG, PNG, WebP, GIF, ICO · अधिकतम 20 MB',
       dragging: 'विश्लेषण के लिए छोड़ें',
     },
     result: {

@@ -71,10 +71,17 @@ const ar: Translations = {
     tag: 'جرّبه',
     title: 'اكتشف بنفسك.',
     subtitle: 'ارفع ملفًا واكتشف فورًا المعلومات التي يكشف عنها.',
+    tabs: { pdf: 'PDF', image: 'صورة' },
     upload: {
       title: 'أسقط ملفك هنا',
       subtitle: 'أو انقر للاستعراض',
       pdfOnly: 'PDF فقط · 20 ميجابايت كحد أقصى',
+      dragging: 'أسقط للتحليل',
+    },
+    imageUpload: {
+      title: 'أسقط صورتك هنا',
+      subtitle: 'أو انقر للاستعراض',
+      formats: 'JPEG, PNG, WebP, GIF, ICO · 20 ميجابايت كحد أقصى',
       dragging: 'أسقط للتحليل',
     },
     result: {

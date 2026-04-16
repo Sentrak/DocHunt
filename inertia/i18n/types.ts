@@ -49,7 +49,9 @@ export interface Translations {
     tag: string
     title: string
     subtitle: string
+    tabs: { pdf: string; image: string }
     upload: { title: string; subtitle: string; pdfOnly: string; dragging: string }
+    imageUpload: { title: string; subtitle: string; formats: string; dragging: string }
     result: {
       status: string
       sensitiveCount: string

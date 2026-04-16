@@ -1,6 +1,16 @@
 import { useCallback, useRef, useState } from 'react'
 import { motion } from 'motion/react'
-import { AlertCircle, Download, FileUp, Loader2, ShieldAlert, ShieldCheck, TriangleAlert } from 'lucide-react'
+import {
+  AlertCircle,
+  Download,
+  FileImage,
+  FileUp,
+  Loader2,
+  MapPin,
+  ShieldAlert,
+  ShieldCheck,
+  TriangleAlert,
+} from 'lucide-react'
 import { useT } from '~/i18n/context'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -18,7 +28,7 @@ interface SensitiveMatch {
   value: string
 }
 
-interface AnalysisResult {
+interface PdfResult {
   filename: string
   file_size: number
   page_count: number
@@ -33,16 +43,32 @@ interface AnalysisResult {
   sensitive_matches: SensitiveMatch[]
 }
 
-type State =
+interface ImageResult {
+  filename: string
+  file_size: number
+  format: string
+  width: number | null
+  height: number | null
+  mode: string | null
+  risk_score: number
+  fields: MetadataField[]
+  warnings: string[]
+  has_gps: boolean
+  gps_latitude: number | null
+  gps_longitude: number | null
+  sensitive_matches: SensitiveMatch[]
+}
+
+type TabState<R> =
   | { status: 'idle' }
   | { status: 'dragging' }
   | { status: 'uploading' }
-  | { status: 'success'; result: AnalysisResult }
+  | { status: 'success'; result: R }
   | { status: 'error'; message: string }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-const MAX_SIZE = 20 * 1024 * 1024 // 20 Mo
+const MAX_SIZE = 20 * 1024 * 1024
 
 function getCsrfToken(): string {
   const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
@@ -67,96 +93,290 @@ function riskBg(score: number): string {
   return 'bg-red-500/10 border-red-500/30 text-red-500'
 }
 
-// ── Component ────────────────────────────────────────────────────────────────
+const FORMAT_COLOR: Record<string, string> = {
+  JPEG: 'bg-orange-500',
+  PNG: 'bg-blue-500',
+  WEBP: 'bg-green-600',
+  GIF: 'bg-purple-500',
+  ICO: 'bg-slate-500',
+}
+
+// ── DropZone partagé ─────────────────────────────────────────────────────────
+
+interface DropZoneProps<R> {
+  state: TabState<R>
+  setState: (s: TabState<R>) => void
+  inputRef: React.RefObject<HTMLInputElement | null>
+  accept: string
+  uploadHint: string
+  formatsHint: string
+  titleIdle: string
+  titleDragging: string
+  subtitleIdle: string
+  renderSuccess: (result: R) => React.ReactNode
+  onNewAnalysis: () => void
+  t: ReturnType<typeof useT>
+}
+
+function DropZone<R>({
+  state,
+  setState,
+  inputRef,
+  accept,
+  uploadHint,
+  formatsHint,
+  titleIdle,
+  titleDragging,
+  subtitleIdle,
+  renderSuccess,
+  onNewAnalysis,
+  t,
+}: DropZoneProps<R>) {
+  const dragCounter = useRef(0)
+
+  const onDragEnter = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      dragCounter.current++
+      if (state.status !== 'uploading') setState({ status: 'dragging' })
+    },
+    [state.status, setState]
+  )
+  const onDragLeave = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      dragCounter.current--
+      if (dragCounter.current === 0) setState({ status: 'idle' })
+    },
+    [setState]
+  )
+  const onDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    dragCounter.current = 0
+    // handled by parent
+  }, [])
+
+  const isDragging = state.status === 'dragging'
+  const isUploading = state.status === 'uploading'
+
+  return (
+    <div
+      onDragEnter={onDragEnter}
+      onDragOver={(e) => e.preventDefault()}
+      onDragLeave={onDragLeave}
+      onDrop={(e) => {
+        onDrop(e)
+        const file = e.dataTransfer.files[0]
+        if (file) (inputRef.current as any)?._onFile?.(file)
+      }}
+      onClick={() => !isUploading && inputRef.current?.click()}
+      className={`group rounded-[20px] px-10 py-16 text-center transition-all border-2 border-dashed cursor-pointer select-none ${
+        isDragging
+          ? 'border-amber-brand bg-[rgba(245,158,11,0.06)] scale-[1.01]'
+          : isUploading
+            ? 'border-edge bg-bg-card cursor-wait'
+            : 'border-edge bg-bg-card hover:border-amber-brand hover:bg-[rgba(245,158,11,0.02)]'
+      }`}
+    >
+      <input ref={inputRef} type="file" accept={accept} className="hidden" />
+
+      {isUploading ? (
+        <>
+          <Loader2 className="w-12 h-12 text-amber-brand animate-spin mx-auto mb-4" />
+          <p className="text-lg font-semibold">{t.demo.result.loading}</p>
+        </>
+      ) : state.status === 'success' ? (
+        <>
+          <ShieldCheck className="w-12 h-12 text-amber-brand mx-auto mb-4" />
+          {renderSuccess(state.result)}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onNewAnalysis()
+            }}
+            className="mt-4 px-5 py-2 bg-amber-brand hover:bg-amber-400 text-bg-dark rounded-full text-sm font-semibold transition-all cursor-pointer"
+          >
+            {t.demo.result.newAnalysis}
+          </button>
+        </>
+      ) : state.status === 'error' ? (
+        <>
+          <ShieldAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-lg font-semibold text-red-500 mb-1">{t.demo.result.errorTitle}</p>
+          <p className="text-dim text-sm mb-5">{state.message}</p>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onNewAnalysis()
+            }}
+            className="px-5 py-2 bg-bg-secondary border border-edge hover:border-amber-brand/50 rounded-full text-sm font-medium text-dim hover:text-cream transition-all cursor-pointer"
+          >
+            {t.demo.result.newAnalysis}
+          </button>
+        </>
+      ) : (
+        <>
+          <FileUp
+            className={`w-12 h-12 mx-auto mb-4 transition-all ${
+              isDragging
+                ? 'text-amber-brand -translate-y-1'
+                : 'text-mute group-hover:text-amber-brand group-hover:-translate-y-1'
+            }`}
+          />
+          <h3 className="text-lg font-semibold mb-2">{isDragging ? titleDragging : titleIdle}</h3>
+          <p className="text-dim text-sm mb-2">{subtitleIdle}</p>
+          <p className="font-mono text-[11px] text-mute">{formatsHint}</p>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
 
 export default function UploadDemo() {
   const t = useT()
-  const [state, setState] = useState<State>({ status: 'idle' })
-  const inputRef = useRef<HTMLInputElement>(null)
-  const dragCounter = useRef(0)
+  const [activeTab, setActiveTab] = useState<'pdf' | 'image'>('pdf')
+  const [pdfState, setPdfState] = useState<TabState<PdfResult>>({ status: 'idle' })
+  const [imageState, setImageState] = useState<TabState<ImageResult>>({ status: 'idle' })
+  const pdfInputRef = useRef<HTMLInputElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
 
-  // ── Upload ────────────────────────────────────────────────────────────────
+  // ── PDF upload ─────────────────────────────────────────────────────────────
 
-  const analyze = useCallback(async (file: File) => {
-    // Validation côté client (defense in depth)
+  const analyzePdf = useCallback(async (file: File) => {
     if (!file.name.toLowerCase().endsWith('.pdf')) {
-      setState({ status: 'error', message: 'Seuls les fichiers PDF sont acceptés.' })
+      setPdfState({ status: 'error', message: 'Seuls les fichiers PDF sont acceptés.' })
       return
     }
     if (file.size > MAX_SIZE) {
-      setState({ status: 'error', message: 'Fichier trop volumineux (max 20 Mo).' })
+      setPdfState({ status: 'error', message: 'Fichier trop volumineux (max 20 Mo).' })
       return
     }
-
-    setState({ status: 'uploading' })
-
+    setPdfState({ status: 'uploading' })
     try {
       const form = new FormData()
       form.append('file', file)
-
-      const res = await fetch('/api/analyze', {
+      const res = await fetch('/api/analyze/pdf', {
         method: 'POST',
         headers: { 'X-XSRF-TOKEN': getCsrfToken() },
         body: form,
       })
-
       const json = await res.json()
-
       if (!res.ok) {
-        setState({ status: 'error', message: json.error ?? "Erreur lors de l'analyse." })
+        setPdfState({ status: 'error', message: json.error ?? "Erreur lors de l'analyse." })
         return
       }
-
-      setState({ status: 'success', result: json as AnalysisResult })
+      setPdfState({ status: 'success', result: json as PdfResult })
     } catch {
-      setState({ status: 'error', message: 'Impossible de contacter le service.' })
+      setPdfState({ status: 'error', message: 'Impossible de contacter le service.' })
     }
   }, [])
 
-  // ── Drag & Drop ───────────────────────────────────────────────────────────
+  // ── Image upload ───────────────────────────────────────────────────────────
 
-  const onDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    dragCounter.current++
-    if (state.status !== 'uploading') setState({ status: 'dragging' })
-  }, [state.status])
-
-  const onDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    dragCounter.current--
-    if (dragCounter.current === 0) setState({ status: 'idle' })
+  const analyzeImage = useCallback(async (file: File) => {
+    const ext = file.name.toLowerCase().split('.').pop() ?? ''
+    if (!['jpg', 'jpeg', 'png', 'webp', 'gif', 'ico'].includes(ext)) {
+      setImageState({
+        status: 'error',
+        message: 'Format non supporté. Acceptés : JPEG, PNG, WebP, GIF, ICO.',
+      })
+      return
+    }
+    if (file.size > MAX_SIZE) {
+      setImageState({ status: 'error', message: 'Fichier trop volumineux (max 20 Mo).' })
+      return
+    }
+    setImageState({ status: 'uploading' })
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      const res = await fetch('/api/analyze/image', {
+        method: 'POST',
+        headers: { 'X-XSRF-TOKEN': getCsrfToken() },
+        body: form,
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        setImageState({ status: 'error', message: json.error ?? "Erreur lors de l'analyse." })
+        return
+      }
+      setImageState({ status: 'success', result: json as ImageResult })
+    } catch {
+      setImageState({ status: 'error', message: 'Impossible de contacter le service.' })
+    }
   }, [])
 
-  const onDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    dragCounter.current = 0
-    const file = e.dataTransfer.files[0]
-    if (file) analyze(file)
-  }, [analyze])
+  // ── Wire file inputs ───────────────────────────────────────────────────────
 
-  const onFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) analyze(file)
-    e.target.value = ''
-  }, [analyze])
+  const onPdfChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (file) analyzePdf(file)
+      e.target.value = ''
+    },
+    [analyzePdf]
+  )
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  const onImageChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (file) analyzeImage(file)
+      e.target.value = ''
+    },
+    [analyzeImage]
+  )
+
+  // Attach onChange to real inputs via effect pattern
+  const attachPdfDrop = useCallback((file: File) => analyzePdf(file), [analyzePdf])
+  const attachImageDrop = useCallback((file: File) => analyzeImage(file), [analyzeImage])
 
   return (
     <section id="demo" className="py-[120px] bg-bg-secondary border-t border-b border-edge">
       <div className="max-w-6xl mx-auto px-6">
+        {/* ── Header ── */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center mb-16"
+          className="text-center mb-12"
         >
-          <p className="font-mono text-xs uppercase tracking-[3px] text-amber-brand mb-4">{t.demo.tag}</p>
+          <p className="font-mono text-xs uppercase tracking-[3px] text-amber-brand mb-4">
+            {t.demo.tag}
+          </p>
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">{t.demo.title}</h2>
           <p className="text-dim text-[17px] max-w-[560px] mx-auto">{t.demo.subtitle}</p>
         </motion.div>
 
+        {/* ── Tabs ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="flex justify-center mb-10"
+        >
+          <div className="inline-flex items-center gap-1 p-1 bg-bg-card border border-edge rounded-full">
+            <TabButton
+              label={t.demo.tabs.pdf}
+              icon={<span className="text-[10px] font-black">PDF</span>}
+              active={activeTab === 'pdf'}
+              color="text-red-400"
+              onClick={() => setActiveTab('pdf')}
+            />
+            <TabButton
+              label={t.demo.tabs.image}
+              icon={<FileImage className="w-3.5 h-3.5" />}
+              active={activeTab === 'image'}
+              color="text-blue-400"
+              onClick={() => setActiveTab('image')}
+            />
+          </div>
+        </motion.div>
+
+        {/* ── Content ── */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -164,99 +384,317 @@ export default function UploadDemo() {
           transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           className="flex flex-col gap-8"
         >
-          {/* ── Ligne haute : upload + métadonnées ── */}
-          <div className="grid md:grid-cols-2 gap-12 items-start">
-            {/* Upload */}
-            <div
-              onDragEnter={onDragEnter}
-              onDragOver={(e) => e.preventDefault()}
-              onDragLeave={onDragLeave}
-              onDrop={onDrop}
-              onClick={() => state.status !== 'uploading' && inputRef.current?.click()}
-              className={`group rounded-[20px] px-10 py-16 text-center transition-all border-2 border-dashed cursor-pointer select-none ${
-                state.status === 'dragging'
-                  ? 'border-amber-brand bg-[rgba(245,158,11,0.06)] scale-[1.01]'
-                  : state.status === 'uploading'
-                    ? 'border-edge bg-bg-card cursor-wait'
-                    : 'border-edge bg-bg-card hover:border-amber-brand hover:bg-[rgba(245,158,11,0.02)]'
-              }`}
-            >
-              <input
-                ref={inputRef}
-                type="file"
-                accept=".pdf,application/pdf"
-                className="hidden"
-                onChange={onFileChange}
-              />
-
-              {state.status === 'uploading' ? (
-                <>
-                  <Loader2 className="w-12 h-12 text-amber-brand animate-spin mx-auto mb-4" />
-                  <p className="text-lg font-semibold">{t.demo.result.loading}</p>
-                </>
-              ) : state.status === 'success' ? (
-                <>
-                  <ShieldCheck className="w-12 h-12 text-amber-brand mx-auto mb-4" />
-                  <p className="text-lg font-semibold mb-1">{state.result.filename}</p>
-                  <p className="text-dim text-sm mb-5">
-                    {formatBytes(state.result.file_size)} · {state.result.page_count} pages · PDF {state.result.pdf_version}
-                  </p>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setState({ status: 'idle' }) }}
-                    className="px-5 py-2 bg-amber-brand hover:bg-amber-400 text-bg-dark rounded-full text-sm font-semibold transition-all cursor-pointer"
-                  >
-                    {t.demo.result.newAnalysis}
-                  </button>
-                </>
-              ) : state.status === 'error' ? (
-                <>
-                  <ShieldAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                  <p className="text-lg font-semibold text-red-500 mb-1">{t.demo.result.errorTitle}</p>
-                  <p className="text-dim text-sm mb-5">{state.message}</p>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setState({ status: 'idle' }) }}
-                    className="px-5 py-2 bg-bg-secondary border border-edge hover:border-edge-hover rounded-full text-sm font-medium text-dim hover:text-cream transition-all cursor-pointer"
-                  >
-                    {t.demo.result.newAnalysis}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <FileUp className={`w-12 h-12 mx-auto mb-4 transition-all ${
-                    state.status === 'dragging'
-                      ? 'text-amber-brand -translate-y-1'
-                      : 'text-mute group-hover:text-amber-brand group-hover:-translate-y-1'
-                  }`} />
-                  <h3 className="text-lg font-semibold mb-2">
-                    {state.status === 'dragging' ? t.demo.upload.dragging : t.demo.upload.title}
-                  </h3>
-                  <p className="text-dim text-sm mb-2">{t.demo.upload.subtitle}</p>
-                  <p className="font-mono text-[11px] text-mute">{t.demo.upload.pdfOnly}</p>
-                </>
+          {activeTab === 'pdf' ? (
+            <>
+              <div className="grid md:grid-cols-2 gap-12 items-start">
+                {/* PDF Drop zone */}
+                <div>
+                  <input
+                    ref={pdfInputRef}
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    className="hidden"
+                    onChange={onPdfChange}
+                  />
+                  <PdfDropZone
+                    state={pdfState}
+                    setState={setPdfState}
+                    inputRef={pdfInputRef}
+                    onFile={attachPdfDrop}
+                    t={t}
+                  />
+                </div>
+                {/* PDF Meta card */}
+                <div className="bg-bg-card border border-edge rounded-[14px] overflow-hidden">
+                  {pdfState.status === 'success' ? (
+                    <PdfMetaCard result={pdfState.result} t={t} />
+                  ) : (
+                    <PdfMockPanel t={t} />
+                  )}
+                </div>
+              </div>
+              {pdfState.status === 'success' && (
+                <DetectedCard
+                  matches={pdfState.result.sensitive_matches ?? []}
+                  urls={pdfState.result.embedded_urls ?? []}
+                />
               )}
-            </div>
-
-            {/* Métadonnées */}
-            <div className="bg-bg-card border border-edge rounded-[14px] overflow-hidden">
-              {state.status === 'success' ? (
-                <MetaCard result={state.result} t={t} />
-              ) : (
-                <MockPanel t={t} />
+            </>
+          ) : (
+            <>
+              <div className="grid md:grid-cols-2 gap-12 items-start">
+                {/* Image Drop zone */}
+                <div>
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.webp,.gif,.ico,image/*"
+                    className="hidden"
+                    onChange={onImageChange}
+                  />
+                  <ImageDropZone
+                    state={imageState}
+                    setState={setImageState}
+                    inputRef={imageInputRef}
+                    onFile={attachImageDrop}
+                    t={t}
+                  />
+                </div>
+                {/* Image Meta card */}
+                <div className="bg-bg-card border border-edge rounded-[14px] overflow-hidden">
+                  {imageState.status === 'success' ? (
+                    <ImageMetaCard result={imageState.result} t={t} />
+                  ) : (
+                    <ImageMockPanel t={t} />
+                  )}
+                </div>
+              </div>
+              {imageState.status === 'success' && (
+                <DetectedCard matches={imageState.result.sensitive_matches ?? []} urls={[]} />
               )}
-            </div>
-          </div>
-
-          {/* ── Ligne basse : données détectées pleine largeur ── */}
-          {state.status === 'success' && <DetectedCard result={state.result} />}
+            </>
+          )}
         </motion.div>
       </div>
     </section>
   )
 }
 
-// ── Panneau mock (avant analyse) ─────────────────────────────────────────────
+// ── Tab button ────────────────────────────────────────────────────────────────
 
-const MOCK_ROWS = [
+function TabButton({
+  label,
+  icon,
+  active,
+  color,
+  onClick,
+}: {
+  label: string
+  icon: React.ReactNode
+  active: boolean
+  color: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all cursor-pointer ${
+        active
+          ? 'bg-amber-brand text-bg-dark shadow-[0_0_16px_rgba(245,158,11,0.35)]'
+          : 'text-dim hover:text-cream'
+      }`}
+    >
+      <span className={active ? '' : color}>{icon}</span>
+      {label}
+    </button>
+  )
+}
+
+// ── PDF Drop Zone ─────────────────────────────────────────────────────────────
+
+function PdfDropZone({
+  state,
+  setState,
+  inputRef,
+  onFile,
+  t,
+}: {
+  state: TabState<PdfResult>
+  setState: (s: TabState<PdfResult>) => void
+  inputRef: React.RefObject<HTMLInputElement | null>
+  onFile: (f: File) => void
+  t: ReturnType<typeof useT>
+}) {
+  const dragCounter = useRef(0)
+  const isDragging = state.status === 'dragging'
+  const isUploading = state.status === 'uploading'
+
+  return (
+    <div
+      onDragEnter={(e) => {
+        e.preventDefault()
+        dragCounter.current++
+        if (!isUploading) setState({ status: 'dragging' })
+      }}
+      onDragOver={(e) => e.preventDefault()}
+      onDragLeave={(e) => {
+        e.preventDefault()
+        dragCounter.current--
+        if (dragCounter.current === 0) setState({ status: 'idle' })
+      }}
+      onDrop={(e) => {
+        e.preventDefault()
+        dragCounter.current = 0
+        const f = e.dataTransfer.files[0]
+        if (f) onFile(f)
+      }}
+      onClick={() => !isUploading && inputRef.current?.click()}
+      className={`group rounded-[20px] px-10 py-16 text-center transition-all border-2 border-dashed cursor-pointer select-none ${
+        isDragging
+          ? 'border-amber-brand bg-[rgba(245,158,11,0.06)] scale-[1.01]'
+          : isUploading
+            ? 'border-edge bg-bg-card cursor-wait'
+            : 'border-edge bg-bg-card hover:border-amber-brand hover:bg-[rgba(245,158,11,0.02)]'
+      }`}
+    >
+      {isUploading ? (
+        <>
+          <Loader2 className="w-12 h-12 text-amber-brand animate-spin mx-auto mb-4" />
+          <p className="text-lg font-semibold">{t.demo.result.loading}</p>
+        </>
+      ) : state.status === 'success' ? (
+        <>
+          <ShieldCheck className="w-12 h-12 text-amber-brand mx-auto mb-4" />
+          <p className="text-lg font-semibold mb-1">{state.result.filename}</p>
+          <p className="text-dim text-sm mb-4">
+            {formatBytes(state.result.file_size)} · {state.result.page_count}p · PDF{' '}
+            {state.result.pdf_version}
+          </p>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              setState({ status: 'idle' })
+            }}
+            className="px-5 py-2 bg-amber-brand hover:bg-amber-400 text-bg-dark rounded-full text-sm font-semibold transition-all cursor-pointer"
+          >
+            {t.demo.result.newAnalysis}
+          </button>
+        </>
+      ) : state.status === 'error' ? (
+        <>
+          <ShieldAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-lg font-semibold text-red-500 mb-1">{t.demo.result.errorTitle}</p>
+          <p className="text-dim text-sm mb-4">{state.message}</p>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              setState({ status: 'idle' })
+            }}
+            className="px-5 py-2 bg-bg-secondary border border-edge rounded-full text-sm font-medium text-dim hover:text-cream transition-all cursor-pointer"
+          >
+            {t.demo.result.newAnalysis}
+          </button>
+        </>
+      ) : (
+        <>
+          <FileUp
+            className={`w-12 h-12 mx-auto mb-4 transition-all ${isDragging ? 'text-amber-brand -translate-y-1' : 'text-mute group-hover:text-amber-brand group-hover:-translate-y-1'}`}
+          />
+          <h3 className="text-lg font-semibold mb-2">
+            {isDragging ? t.demo.upload.dragging : t.demo.upload.title}
+          </h3>
+          <p className="text-dim text-sm mb-2">{t.demo.upload.subtitle}</p>
+          <p className="font-mono text-[11px] text-mute">{t.demo.upload.pdfOnly}</p>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ── Image Drop Zone ───────────────────────────────────────────────────────────
+
+function ImageDropZone({
+  state,
+  setState,
+  inputRef,
+  onFile,
+  t,
+}: {
+  state: TabState<ImageResult>
+  setState: (s: TabState<ImageResult>) => void
+  inputRef: React.RefObject<HTMLInputElement | null>
+  onFile: (f: File) => void
+  t: ReturnType<typeof useT>
+}) {
+  const dragCounter = useRef(0)
+  const isDragging = state.status === 'dragging'
+  const isUploading = state.status === 'uploading'
+
+  return (
+    <div
+      onDragEnter={(e) => {
+        e.preventDefault()
+        dragCounter.current++
+        if (!isUploading) setState({ status: 'dragging' })
+      }}
+      onDragOver={(e) => e.preventDefault()}
+      onDragLeave={(e) => {
+        e.preventDefault()
+        dragCounter.current--
+        if (dragCounter.current === 0) setState({ status: 'idle' })
+      }}
+      onDrop={(e) => {
+        e.preventDefault()
+        dragCounter.current = 0
+        const f = e.dataTransfer.files[0]
+        if (f) onFile(f)
+      }}
+      onClick={() => !isUploading && inputRef.current?.click()}
+      className={`group rounded-[20px] px-10 py-16 text-center transition-all border-2 border-dashed cursor-pointer select-none ${
+        isDragging
+          ? 'border-blue-500 bg-[rgba(59,130,246,0.06)] scale-[1.01]'
+          : isUploading
+            ? 'border-edge bg-bg-card cursor-wait'
+            : 'border-edge bg-bg-card hover:border-blue-500 hover:bg-[rgba(59,130,246,0.02)]'
+      }`}
+    >
+      {isUploading ? (
+        <>
+          <Loader2 className="w-12 h-12 text-blue-400 animate-spin mx-auto mb-4" />
+          <p className="text-lg font-semibold">{t.demo.result.loading}</p>
+        </>
+      ) : state.status === 'success' ? (
+        <>
+          <ShieldCheck className="w-12 h-12 text-blue-400 mx-auto mb-4" />
+          <p className="text-lg font-semibold mb-1">{state.result.filename}</p>
+          <p className="text-dim text-sm mb-4">
+            {formatBytes(state.result.file_size)} · {state.result.width}×{state.result.height} ·{' '}
+            {state.result.format}
+          </p>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              setState({ status: 'idle' })
+            }}
+            className="px-5 py-2 bg-blue-500 hover:bg-blue-400 text-white rounded-full text-sm font-semibold transition-all cursor-pointer"
+          >
+            {t.demo.result.newAnalysis}
+          </button>
+        </>
+      ) : state.status === 'error' ? (
+        <>
+          <ShieldAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-lg font-semibold text-red-500 mb-1">{t.demo.result.errorTitle}</p>
+          <p className="text-dim text-sm mb-4">{state.message}</p>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              setState({ status: 'idle' })
+            }}
+            className="px-5 py-2 bg-bg-secondary border border-edge rounded-full text-sm font-medium text-dim hover:text-cream transition-all cursor-pointer"
+          >
+            {t.demo.result.newAnalysis}
+          </button>
+        </>
+      ) : (
+        <>
+          <FileImage
+            className={`w-12 h-12 mx-auto mb-4 transition-all ${isDragging ? 'text-blue-400 -translate-y-1' : 'text-mute group-hover:text-blue-400 group-hover:-translate-y-1'}`}
+          />
+          <h3 className="text-lg font-semibold mb-2">
+            {isDragging ? t.demo.imageUpload.dragging : t.demo.imageUpload.title}
+          </h3>
+          <p className="text-dim text-sm mb-2">{t.demo.imageUpload.subtitle}</p>
+          <p className="font-mono text-[11px] text-mute">{t.demo.imageUpload.formats}</p>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ── Mock panels ───────────────────────────────────────────────────────────────
+
+const PDF_MOCK_ROWS = [
   { label: 'AUTEUR', value: 'Jean-Marc Dupont', sensitive: true },
   { label: 'ORGANISATION', value: 'Acme Corp.', sensitive: true },
   { label: 'LOGICIEL', value: 'Microsoft Word 2021', sensitive: false },
@@ -265,15 +703,38 @@ const MOCK_ROWS = [
   { label: 'GPS', value: '48.8566°N, 2.3522°E', sensitive: true },
 ]
 
-function MockPanel({ t }: { t: ReturnType<typeof useT> }) {
+const IMAGE_MOCK_ROWS = [
+  { label: 'MARQUE', value: 'Apple', sensitive: true },
+  { label: 'MODÈLE APPAREIL', value: 'iPhone 15 Pro', sensitive: true },
+  { label: 'LOGICIEL', value: 'iOS 17.2', sensitive: true },
+  { label: 'DATE PRISE DE VUE', value: '2024-08-15 14:32:07', sensitive: true },
+  { label: 'GPS — LATITUDE', value: '48.858600°', sensitive: true },
+  { label: 'GPS — LONGITUDE', value: '2.352200°', sensitive: true },
+]
+
+function MockPanel({
+  rows,
+  badge,
+  t,
+}: {
+  rows: typeof PDF_MOCK_ROWS
+  badge: string
+  t: ReturnType<typeof useT>
+}) {
   return (
     <>
       <div className="px-5 py-4 flex items-center justify-between border-b border-edge">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-red-500 rounded-lg flex items-center justify-center font-bold text-white text-xs">PDF</div>
+          <div className="w-9 h-9 bg-red-500 rounded-lg flex items-center justify-center font-bold text-white text-xs">
+            {badge}
+          </div>
           <div>
-            <div className="text-sm font-semibold">rapport-confidentiel.pdf</div>
-            <div className="text-xs text-mute">2.4 MB · 24 pages</div>
+            <div className="text-sm font-semibold">
+              {badge === 'PDF' ? 'rapport-confidentiel.pdf' : 'photo-vacances.jpg'}
+            </div>
+            <div className="text-xs text-mute">
+              {badge === 'PDF' ? '2.4 MB · 24 pages' : '3.1 MB · 4032×3024'}
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-brand">
@@ -281,20 +742,25 @@ function MockPanel({ t }: { t: ReturnType<typeof useT> }) {
           {t.demo.result.status}
         </div>
       </div>
-
       <div>
-        {MOCK_ROWS.map((row) => (
-          <div key={row.label} className="flex items-center justify-between px-5 py-3 border-b border-edge last:border-b-0 hover:bg-white/[0.02]">
+        {rows.map((row) => (
+          <div
+            key={row.label}
+            className="flex items-center justify-between px-5 py-3 border-b border-edge last:border-b-0 hover:bg-white/[0.02]"
+          >
             <span className="font-mono text-[11px] text-mute">{row.label}</span>
-            <span className={`text-sm font-medium text-right max-w-[60%] break-all flex items-center gap-1.5 ${row.sensitive ? 'text-red-500' : 'text-blue-400'}`}>
-              {row.sensitive && <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />}
+            <span
+              className={`text-sm font-medium text-right max-w-[60%] break-all flex items-center gap-1.5 ${row.sensitive ? 'text-red-500' : 'text-blue-400'}`}
+            >
+              {row.sensitive && (
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
+              )}
               {row.value}
             </span>
           </div>
         ))}
       </div>
-
-      <div className="px-5 py-4 border-t border-edge flex items-center justify-between">
+      <div className="px-5 py-4 border-t border-edge">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-500/10 border border-red-500/30 rounded-full text-xs font-semibold text-red-500">
           <AlertCircle className="w-3 h-3" />
           {t.demo.result.sensitiveCount}
@@ -304,138 +770,81 @@ function MockPanel({ t }: { t: ReturnType<typeof useT> }) {
   )
 }
 
-// ── Panneau résultats réels ──────────────────────────────────────────────────
+function PdfMockPanel({ t }: { t: ReturnType<typeof useT> }) {
+  return <MockPanel rows={PDF_MOCK_ROWS} badge="PDF" t={t} />
+}
+
+function ImageMockPanel({ t }: { t: ReturnType<typeof useT> }) {
+  return <MockPanel rows={IMAGE_MOCK_ROWS} badge="IMG" t={t} />
+}
+
+// ── Result cards ──────────────────────────────────────────────────────────────
 
 const SENSITIVE_TYPE_COLOR: Record<string, string> = {
-  // Identité
-  person:   'text-pink-400',
-  handle:   'text-fuchsia-400',
-  // Contact
-  email:    'text-red-400',
-  phone:    'text-orange-400',
-  // Entreprise
-  siret:    'text-amber-400',
-  siren:    'text-amber-300',
-  tva_fr:   'text-yellow-500',
-  // Finances
-  iban:     'text-red-500',
-  // Réseau
-  ip_v4:    'text-purple-400',
-  uuid:     'text-violet-400',
-  url:      'text-cyan-400',
-  // Localisation
+  person: 'text-pink-400',
+  handle: 'text-fuchsia-400',
+  email: 'text-red-400',
+  phone: 'text-orange-400',
+  siret: 'text-amber-400',
+  siren: 'text-amber-300',
+  tva_fr: 'text-yellow-500',
+  iban: 'text-red-500',
+  ip_v4: 'text-purple-400',
+  uuid: 'text-violet-400',
+  url: 'text-cyan-400',
   gps_text: 'text-green-400',
-  postal_fr:'text-lime-400',
+  postal_fr: 'text-lime-400',
   plate_fr: 'text-teal-400',
-  // Documents
-  ssn_fr:   'text-rose-600',
-  date:     'text-blue-400',
-  // NER spaCy
+  ssn_fr: 'text-rose-600',
+  date: 'text-blue-400',
   ner_person: 'text-pink-300',
-  ner_loc:    'text-emerald-400',
-  ner_org:    'text-sky-400',
+  ner_loc: 'text-emerald-400',
+  ner_org: 'text-sky-400',
 }
 
-// ── Export JSON ──────────────────────────────────────────────────────────────
-
-function exportJson(result: AnalysisResult) {
-  const payload = {
-    export_date: new Date().toISOString(),
-    file: {
-      name: result.filename,
-      size_bytes: result.file_size,
-      size_human: formatBytes(result.file_size),
-      pages: result.page_count,
-      pdf_version: result.pdf_version,
-      encrypted: result.encrypted,
-    },
-    risk_score: result.risk_score,
-    flags: {
-      has_javascript: result.has_javascript,
-      has_embedded_files: result.has_embedded_files,
-    },
-    warnings: result.warnings,
-    metadata: result.fields.map((f) => ({
-      key: f.key,
-      label: f.label,
-      value: f.value,
-      sensitive: f.sensitive,
-    })),
-    embedded_urls: result.embedded_urls,
-    sensitive_matches: (result.sensitive_matches ?? []).map((m) => ({
-      type: m.type,
-      label: m.label,
-      value: m.value,
-    })),
-  }
-
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `dochunt-${result.filename.replace(/\.pdf$/i, '')}-${Date.now()}.json`
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
-// ── Carte métadonnées ────────────────────────────────────────────────────────
-
-function MetaCard({ result, t }: { result: AnalysisResult; t: ReturnType<typeof useT> }) {
-  const sensitiveMetaCount = result.fields.filter((f) => f.sensitive).length
+function FieldsTable({ fields }: { fields: MetadataField[] }) {
   return (
-    <div className="bg-bg-card border border-edge rounded-[14px] overflow-hidden">
-      {/* Header */}
-      <div className="px-5 py-4 flex items-center justify-between border-b border-edge">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-red-500 rounded-lg flex items-center justify-center font-bold text-white text-xs">PDF</div>
-          <div>
-            <div className="text-sm font-semibold truncate max-w-[160px]">{result.filename}</div>
-            <div className="text-xs text-mute">
-              {formatBytes(result.file_size)} · {result.page_count} pages · v{result.pdf_version}
-            </div>
+    <div className="max-h-52 overflow-y-auto">
+      {fields.length === 0 ? (
+        <div className="px-5 py-6 text-center text-dim text-sm">Aucune métadonnée trouvée.</div>
+      ) : (
+        fields.map((field) => (
+          <div
+            key={field.key}
+            className="flex items-center justify-between px-5 py-3 border-b border-edge last:border-b-0 hover:bg-white/[0.02]"
+          >
+            <span className="font-mono text-[11px] text-mute uppercase">{field.label}</span>
+            <span
+              className={`text-sm font-medium text-right max-w-[60%] break-all flex items-center gap-1.5 ${field.sensitive ? 'text-red-500' : 'text-blue-400'}`}
+            >
+              {field.sensitive && (
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
+              )}
+              {field.value}
+            </span>
           </div>
-        </div>
-        <div className={`inline-flex items-center gap-1.5 px-3 py-1 border rounded-full text-xs font-bold ${riskBg(result.risk_score)}`}>
-          {result.risk_score}/100
-        </div>
-      </div>
-
-      {/* Badges */}
-      {(result.encrypted || result.has_javascript || result.has_embedded_files) && (
-        <div className="px-5 py-3 flex flex-wrap gap-2 border-b border-edge">
-          {result.encrypted && (
-            <span className="px-2.5 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-[11px] font-medium text-blue-400">Chiffré</span>
-          )}
-          {result.has_javascript && (
-            <span className="px-2.5 py-1 bg-red-500/10 border border-red-500/30 rounded-full text-[11px] font-medium text-red-400">JavaScript</span>
-          )}
-          {result.has_embedded_files && (
-            <span className="px-2.5 py-1 bg-orange-500/10 border border-orange-500/30 rounded-full text-[11px] font-medium text-orange-400">Fichiers embarqués</span>
-          )}
-        </div>
+        ))
       )}
+    </div>
+  )
+}
 
-      {/* Champs de métadonnées */}
-      <div className="max-h-52 overflow-y-auto">
-        {result.fields.length === 0 ? (
-          <div className="px-5 py-6 text-center text-dim text-sm">Aucune métadonnée trouvée.</div>
-        ) : (
-          result.fields.map((field) => (
-            <div key={field.key} className="flex items-center justify-between px-5 py-3 border-b border-edge last:border-b-0 hover:bg-white/[0.02]">
-              <span className="font-mono text-[11px] text-mute uppercase">{field.label}</span>
-              <span className={`text-sm font-medium text-right max-w-[60%] break-all flex items-center gap-1.5 ${field.sensitive ? 'text-red-500' : 'text-blue-400'}`}>
-                {field.sensitive && <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />}
-                {field.value}
-              </span>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Avertissements */}
-      {result.warnings.length > 0 && (
+function WarningsAndFooter({
+  warnings,
+  riskScore,
+  onExport,
+  t,
+}: {
+  warnings: string[]
+  riskScore: number
+  onExport: () => void
+  t: ReturnType<typeof useT>
+}) {
+  return (
+    <>
+      {warnings.length > 0 && (
         <div className="px-5 py-3 border-t border-edge space-y-1.5">
-          {result.warnings.map((w, i) => (
+          {warnings.map((w, i) => (
             <div key={i} className="flex items-start gap-2 text-xs text-amber-brand">
               <TriangleAlert className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
               <span>{w}</span>
@@ -443,58 +852,155 @@ function MetaCard({ result, t }: { result: AnalysisResult; t: ReturnType<typeof 
           ))}
         </div>
       )}
-
-      {/* Footer */}
       <div className="px-5 py-3 border-t border-edge flex items-center justify-between">
-        <div>
-          <span className={`text-xs font-bold ${riskColor(result.risk_score)}`}>
-            {t.demo.result.riskScore} : {result.risk_score}/100
-          </span>
-          {sensitiveMetaCount > 0 && (
-            <span className="ml-3 text-xs text-mute">
-              · {sensitiveMetaCount} champ{sensitiveMetaCount > 1 ? 's' : ''} sensible{sensitiveMetaCount > 1 ? 's' : ''}
-            </span>
-          )}
-        </div>
+        <span className={`text-xs font-bold ${riskColor(riskScore)}`}>
+          {t.demo.result.riskScore} : {riskScore}/100
+        </span>
         <button
-          onClick={() => exportJson(result)}
+          onClick={onExport}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-bg-secondary border border-edge hover:border-amber-brand hover:text-amber-brand rounded-lg text-xs font-medium text-mute transition-all cursor-pointer"
         >
           <Download className="w-3.5 h-3.5" />
-          Exporter JSON
+          {t.demo.result.export} JSON
         </button>
       </div>
-    </div>
+    </>
   )
 }
 
-// ── Carte données détectées ──────────────────────────────────────────────────
-
-// Regroupe les matches par catégorie pour l'affichage en colonnes
-const TYPE_GROUP: Record<string, string> = {
-  person: 'Identité', ner_person: 'Identité', handle: 'Identité',
-  email: 'Contact', phone: 'Contact',
-  siret: 'Entreprise', siren: 'Entreprise', tva_fr: 'Entreprise', ner_org: 'Entreprise',
-  iban: 'Finances',
-  ip_v4: 'Réseau', uuid: 'Réseau', url: 'Réseau',
-  gps_text: 'Localisation', postal_fr: 'Localisation', plate_fr: 'Localisation',
-  ner_loc: 'Localisation',
-  ssn_fr: 'Documents', date: 'Documents',
+function PdfMetaCard({ result, t }: { result: PdfResult; t: ReturnType<typeof useT> }) {
+  const sensitiveCount = result.fields.filter((f) => f.sensitive).length
+  return (
+    <>
+      <div className="px-5 py-4 flex items-center justify-between border-b border-edge">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-red-500 rounded-lg flex items-center justify-center font-bold text-white text-xs">
+            PDF
+          </div>
+          <div>
+            <div className="text-sm font-semibold truncate max-w-[160px]">{result.filename}</div>
+            <div className="text-xs text-mute">
+              {formatBytes(result.file_size)} · {result.page_count}p · v{result.pdf_version}
+            </div>
+          </div>
+        </div>
+        <div
+          className={`inline-flex items-center gap-1.5 px-3 py-1 border rounded-full text-xs font-bold ${riskBg(result.risk_score)}`}
+        >
+          {result.risk_score}/100
+        </div>
+      </div>
+      {(result.encrypted || result.has_javascript || result.has_embedded_files) && (
+        <div className="px-5 py-3 flex flex-wrap gap-2 border-b border-edge">
+          {result.encrypted && (
+            <span className="px-2.5 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-[11px] font-medium text-blue-400">
+              Chiffré
+            </span>
+          )}
+          {result.has_javascript && (
+            <span className="px-2.5 py-1 bg-red-500/10 border border-red-500/30 rounded-full text-[11px] font-medium text-red-400">
+              JavaScript
+            </span>
+          )}
+          {result.has_embedded_files && (
+            <span className="px-2.5 py-1 bg-orange-500/10 border border-orange-500/30 rounded-full text-[11px] font-medium text-orange-400">
+              Fichiers embarqués
+            </span>
+          )}
+        </div>
+      )}
+      <FieldsTable fields={result.fields} />
+      <WarningsAndFooter
+        warnings={result.warnings}
+        riskScore={result.risk_score}
+        onExport={() => exportPdfJson(result)}
+        t={t}
+      />
+      {sensitiveCount > 0 && (
+        <div className="px-5 pb-3 text-xs text-mute">
+          · {sensitiveCount} champ{sensitiveCount > 1 ? 's' : ''} sensible
+          {sensitiveCount > 1 ? 's' : ''}
+        </div>
+      )}
+    </>
+  )
 }
 
-function DetectedCard({ result }: { result: AnalysisResult }) {
-  const matches = result.sensitive_matches ?? []
-  const urls = result.embedded_urls ?? []
+function ImageMetaCard({ result, t }: { result: ImageResult; t: ReturnType<typeof useT> }) {
+  const fmtColor = FORMAT_COLOR[result.format.toUpperCase()] ?? 'bg-gray-500'
+  return (
+    <>
+      <div className="px-5 py-4 flex items-center justify-between border-b border-edge">
+        <div className="flex items-center gap-3">
+          <div
+            className={`w-9 h-9 ${fmtColor} rounded-lg flex items-center justify-center font-bold text-white text-[9px] text-center leading-tight`}
+          >
+            {result.format.slice(0, 4)}
+          </div>
+          <div>
+            <div className="text-sm font-semibold truncate max-w-[160px]">{result.filename}</div>
+            <div className="text-xs text-mute">
+              {formatBytes(result.file_size)}
+              {result.width && result.height ? ` · ${result.width}×${result.height}` : ''}
+              {result.mode ? ` · ${result.mode}` : ''}
+            </div>
+          </div>
+        </div>
+        <div
+          className={`inline-flex items-center gap-1.5 px-3 py-1 border rounded-full text-xs font-bold ${riskBg(result.risk_score)}`}
+        >
+          {result.risk_score}/100
+        </div>
+      </div>
+      {result.has_gps && (
+        <div className="px-5 py-2 border-b border-edge">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-500/10 border border-green-500/30 rounded-full text-[11px] font-medium text-green-400">
+            <MapPin className="w-3 h-3" />
+            GPS · {result.gps_latitude?.toFixed(4)}°, {result.gps_longitude?.toFixed(4)}°
+          </div>
+        </div>
+      )}
+      <FieldsTable fields={result.fields} />
+      <WarningsAndFooter
+        warnings={result.warnings}
+        riskScore={result.risk_score}
+        onExport={() => exportImageJson(result)}
+        t={t}
+      />
+    </>
+  )
+}
 
-  // Construire une liste unifiée avec les URLs comme matches
-  const allItems: { label: string; value: string; type: string }[] = [
+// ── Detected card (shared) ────────────────────────────────────────────────────
+
+const TYPE_GROUP: Record<string, string> = {
+  person: 'Identité',
+  ner_person: 'Identité',
+  handle: 'Identité',
+  email: 'Contact',
+  phone: 'Contact',
+  siret: 'Entreprise',
+  siren: 'Entreprise',
+  tva_fr: 'Entreprise',
+  ner_org: 'Entreprise',
+  iban: 'Finances',
+  ip_v4: 'Réseau',
+  uuid: 'Réseau',
+  url: 'Réseau',
+  gps_text: 'Localisation',
+  postal_fr: 'Localisation',
+  plate_fr: 'Localisation',
+  ner_loc: 'Localisation',
+  ssn_fr: 'Documents',
+  date: 'Documents',
+}
+
+function DetectedCard({ matches, urls }: { matches: SensitiveMatch[]; urls: string[] }) {
+  const allItems = [
     ...matches.map((m) => ({ label: m.label, value: m.value, type: m.type })),
     ...urls.map((u) => ({ label: 'Lien', value: u, type: 'url' })),
   ]
-
   const total = allItems.length
-
-  // Grouper par catégorie
   const grouped = allItems.reduce<Record<string, typeof allItems>>((acc, item) => {
     const group = TYPE_GROUP[item.type] ?? 'Autres'
     if (!acc[group]) acc[group] = []
@@ -502,35 +1008,43 @@ function DetectedCard({ result }: { result: AnalysisResult }) {
     return acc
   }, {})
 
-  const groups = Object.entries(grouped)
-
   return (
     <div className="bg-bg-card border border-edge rounded-[14px] overflow-hidden">
-      {/* Header */}
       <div className="px-6 py-3 flex items-center justify-between border-b border-edge">
-        <span className="font-mono text-[11px] text-mute uppercase tracking-wider">Données détectées</span>
-        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 border rounded-full text-[11px] font-semibold ${total > 0 ? 'bg-red-500/10 border-red-500/30 text-red-500' : 'bg-green-500/10 border-green-500/30 text-green-400'}`}>
+        <span className="font-mono text-[11px] text-mute uppercase tracking-wider">
+          Données détectées
+        </span>
+        <div
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 border rounded-full text-[11px] font-semibold ${total > 0 ? 'bg-red-500/10 border-red-500/30 text-red-500' : 'bg-green-500/10 border-green-500/30 text-green-400'}`}
+        >
           <AlertCircle className="w-3 h-3" />
           {total}
         </div>
       </div>
-
       {total === 0 ? (
         <div className="px-6 py-8 text-center text-dim text-sm">
-          Aucune donnée sensible détectée dans le contenu.
+          Aucune donnée sensible détectée.
         </div>
       ) : (
         <div className="p-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {groups.map(([groupName, items]) => (
+          {Object.entries(grouped).map(([groupName, items]) => (
             <div key={groupName}>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-mute mb-2">{groupName}</p>
+              <p className="font-mono text-[10px] uppercase tracking-widest text-mute mb-2">
+                {groupName}
+              </p>
               <div className="flex flex-col gap-1.5">
                 {items.map((item, i) => (
-                  <div key={i} className="group flex items-start gap-2">
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-[5px] ${SENSITIVE_TYPE_COLOR[item.type] ?? 'text-red-400'} bg-current`} />
+                  <div key={i} className="flex items-start gap-2">
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-[5px] ${SENSITIVE_TYPE_COLOR[item.type] ?? 'text-red-400'} bg-current`}
+                    />
                     <div className="min-w-0">
-                      <p className="font-mono text-[10px] text-mute leading-none mb-0.5">{item.label}</p>
-                      <p className={`text-sm font-medium break-all leading-snug ${SENSITIVE_TYPE_COLOR[item.type] ?? 'text-red-400'}`}>
+                      <p className="font-mono text-[10px] text-mute leading-none mb-0.5">
+                        {item.label}
+                      </p>
+                      <p
+                        className={`text-sm font-medium break-all leading-snug ${SENSITIVE_TYPE_COLOR[item.type] ?? 'text-red-400'}`}
+                      >
                         {item.value}
                       </p>
                     </div>
@@ -545,3 +1059,67 @@ function DetectedCard({ result }: { result: AnalysisResult }) {
   )
 }
 
+// ── JSON export ───────────────────────────────────────────────────────────────
+
+function downloadJson(payload: unknown, filename: string) {
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function exportPdfJson(result: PdfResult) {
+  downloadJson(
+    {
+      export_date: new Date().toISOString(),
+      type: 'pdf',
+      file: {
+        name: result.filename,
+        size_bytes: result.file_size,
+        size_human: formatBytes(result.file_size),
+        pages: result.page_count,
+        pdf_version: result.pdf_version,
+        encrypted: result.encrypted,
+      },
+      risk_score: result.risk_score,
+      flags: {
+        has_javascript: result.has_javascript,
+        has_embedded_files: result.has_embedded_files,
+      },
+      warnings: result.warnings,
+      metadata: result.fields,
+      embedded_urls: result.embedded_urls,
+      sensitive_matches: result.sensitive_matches,
+    },
+    `dochunt-${result.filename.replace(/\.pdf$/i, '')}-${Date.now()}.json`
+  )
+}
+
+function exportImageJson(result: ImageResult) {
+  downloadJson(
+    {
+      export_date: new Date().toISOString(),
+      type: 'image',
+      file: {
+        name: result.filename,
+        size_bytes: result.file_size,
+        size_human: formatBytes(result.file_size),
+        format: result.format,
+        width: result.width,
+        height: result.height,
+        mode: result.mode,
+      },
+      risk_score: result.risk_score,
+      gps: result.has_gps
+        ? { latitude: result.gps_latitude, longitude: result.gps_longitude }
+        : null,
+      warnings: result.warnings,
+      metadata: result.fields,
+      sensitive_matches: result.sensitive_matches,
+    },
+    `dochunt-${result.filename.replace(/\.[^.]+$/, '')}-${Date.now()}.json`
+  )
+}

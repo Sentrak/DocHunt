@@ -88,10 +88,17 @@ const es: Translations = {
     tag: 'Pruébalo',
     title: 'Compruébalo tú mismo.',
     subtitle: 'Sube un archivo y descubre al instante la información que expone.',
+    tabs: { pdf: 'PDF', image: 'Imagen' },
     upload: {
       title: 'Arrastra tu archivo aquí',
       subtitle: 'o haz clic para seleccionar',
       pdfOnly: 'Solo PDF · máx 20 MB',
+      dragging: 'Suelta para analizar',
+    },
+    imageUpload: {
+      title: 'Arrastra tu imagen aquí',
+      subtitle: 'o haz clic para seleccionar',
+      formats: 'JPEG, PNG, WebP, GIF, ICO · máx 20 MB',
       dragging: 'Suelta para analizar',
     },
     result: {

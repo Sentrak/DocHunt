@@ -74,10 +74,17 @@ const ja: Translations = {
     tag: '試してみる',
     title: '自分の目で確かめて。',
     subtitle: 'ファイルをアップロードして、露出している情報を即座に発見。',
+    tabs: { pdf: 'PDF', image: '画像' },
     upload: {
       title: 'ここにファイルをドロップ',
       subtitle: 'またはクリックして参照',
       pdfOnly: 'PDFのみ · 最大20 MB',
+      dragging: 'ここに放してください',
+    },
+    imageUpload: {
+      title: 'ここに画像をドロップ',
+      subtitle: 'またはクリックして参照',
+      formats: 'JPEG, PNG, WebP, GIF, ICO · 最大20 MB',
       dragging: 'ここに放してください',
     },
     result: {
