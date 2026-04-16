@@ -18,8 +18,7 @@ export default function Cta() {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
           <h2 className="text-4xl md:text-[54px] font-extrabold tracking-[-1.5px] mb-4">
-            {t.cta.title}{' '}
-            <span className="text-amber-brand">{t.cta.highlight}</span>
+            {t.cta.title} <span className="text-amber-brand">{t.cta.highlight}</span>
             {' ?'}
           </h2>
           <p className="text-dim text-[17px] max-w-[480px] mx-auto mb-9">{t.cta.subtitle}</p>

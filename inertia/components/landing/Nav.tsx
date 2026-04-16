@@ -31,7 +31,12 @@ export default function Nav() {
 
   function switchLocale(l: string) {
     setLangOpen(false)
-    const pathMap: Record<string, string> = { home: '', demo: '/demo', faq: '/faq', community: '/community' }
+    const pathMap: Record<string, string> = {
+      home: '',
+      demo: '/demo',
+      faq: '/faq',
+      community: '/community',
+    }
     const suffix = pathMap[component] ?? ''
     router.visit(`/${l}${suffix}`)
   }
@@ -79,7 +84,9 @@ export default function Nav() {
               className="flex items-center gap-1.5 text-sm font-medium text-dim hover:text-cream transition-colors cursor-pointer"
             >
               <span className="font-mono uppercase">{locale}</span>
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${langOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${langOpen ? 'rotate-180' : ''}`}
+              />
             </button>
 
             {langOpen && (

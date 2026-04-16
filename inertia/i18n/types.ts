@@ -49,7 +49,9 @@ export interface Translations {
     tag: string
     title: string
     subtitle: string
+    tabs: { pdf: string; image: string }
     upload: { title: string; subtitle: string; pdfOnly: string; dragging: string }
+    imageUpload: { title: string; subtitle: string; formats: string; dragging: string }
     result: {
       status: string
       sensitiveCount: string
@@ -92,6 +94,20 @@ export interface Translations {
     openTitle: string
     openSubtitle: string
     openItems: Array<{ title: string; description: string }>
+  }
+  privacyPage: {
+    badge: string
+    title: string
+    subtitle: string
+    lastUpdated: string
+    sections: Array<{ title: string; content: string }>
+  }
+  termsPage: {
+    badge: string
+    title: string
+    subtitle: string
+    lastUpdated: string
+    sections: Array<{ title: string; content: string }>
   }
   backToTop: string
   footer: {

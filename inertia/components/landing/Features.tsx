@@ -18,7 +18,9 @@ export default function Features() {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="text-center mb-16"
         >
-          <p className="font-mono text-xs uppercase tracking-[3px] text-amber-brand mb-4">{t.features.tag}</p>
+          <p className="font-mono text-xs uppercase tracking-[3px] text-amber-brand mb-4">
+            {t.features.tag}
+          </p>
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">{t.features.title}</h2>
           <p className="text-dim text-[17px] max-w-[560px] mx-auto">{t.features.subtitle}</p>
         </motion.div>

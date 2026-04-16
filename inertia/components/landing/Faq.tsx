@@ -14,7 +14,9 @@ export default function Faq() {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="text-center mb-16"
         >
-          <p className="font-mono text-xs uppercase tracking-[3px] text-amber-brand mb-4">{t.faq.tag}</p>
+          <p className="font-mono text-xs uppercase tracking-[3px] text-amber-brand mb-4">
+            {t.faq.tag}
+          </p>
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight">{t.faq.title}</h2>
         </motion.div>
 

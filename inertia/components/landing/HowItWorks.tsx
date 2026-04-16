@@ -14,8 +14,12 @@ export default function HowItWorks() {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="text-center mb-16"
         >
-          <p className="font-mono text-xs uppercase tracking-[3px] text-amber-brand mb-4">{t.howItWorks.tag}</p>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">{t.howItWorks.title}</h2>
+          <p className="font-mono text-xs uppercase tracking-[3px] text-amber-brand mb-4">
+            {t.howItWorks.tag}
+          </p>
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+            {t.howItWorks.title}
+          </h2>
           <p className="text-dim text-[17px] max-w-[560px] mx-auto">{t.howItWorks.subtitle}</p>
         </motion.div>
 
@@ -34,7 +38,9 @@ export default function HowItWorks() {
                 0{i + 1}
               </div>
               <h3 className="text-xl font-semibold mb-2.5">{step.title}</h3>
-              <p className="text-dim text-sm max-w-[280px] mx-auto leading-relaxed">{step.description}</p>
+              <p className="text-dim text-sm max-w-[280px] mx-auto leading-relaxed">
+                {step.description}
+              </p>
             </motion.div>
           ))}
         </div>

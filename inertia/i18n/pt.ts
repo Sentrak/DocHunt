@@ -87,7 +87,19 @@ const pt: Translations = {
     tag: 'Experimente',
     title: 'Veja por si mesmo.',
     subtitle: 'Faça upload de um arquivo e descubra imediatamente as informações que ele expõe.',
-    upload: { title: 'Arraste seu arquivo aqui', subtitle: 'ou clique para selecionar', pdfOnly: 'Apenas PDF · máx 20 MB', dragging: 'Solte para analisar' },
+    tabs: { pdf: 'PDF', image: 'Imagem' },
+    upload: {
+      title: 'Arraste seu arquivo aqui',
+      subtitle: 'ou clique para selecionar',
+      pdfOnly: 'Apenas PDF · máx 20 MB',
+      dragging: 'Solte para analisar',
+    },
+    imageUpload: {
+      title: 'Arraste sua imagem aqui',
+      subtitle: 'ou clique para selecionar',
+      formats: 'JPEG, PNG, WebP, GIF, ICO · máx 20 MB',
+      dragging: 'Solte para analisar',
+    },
     result: {
       status: 'Analisado',
       sensitiveCount: '4 dados sensíveis detectados',
@@ -167,24 +179,137 @@ const pt: Translations = {
     badge: 'Open Source',
     title: 'Construído',
     highlight: 'juntos.',
-    subtitle: 'DocHunt é um projeto open source. Junte-se à comunidade: reporte bugs, sugira funcionalidades, contribua com código.',
+    subtitle:
+      'DocHunt é um projeto open source. Junte-se à comunidade: reporte bugs, sugira funcionalidades, contribua com código.',
     ctaGithub: 'Ver no GitHub',
     ctaIssue: 'Reportar um bug',
     howTitle: 'Como contribuir?',
     howSubtitle: 'Três formas simples de participar do projeto.',
     cards: [
-      { title: 'Reportar um bug', description: 'Encontrou um problema? Abra uma issue no GitHub com o máximo de detalhes possível.', cta: 'Abrir uma issue' },
-      { title: 'Sugerir uma ideia', description: 'Algo está faltando? Descreva em uma issue e a comunidade irá discutir.', cta: 'Fazer uma sugestão' },
-      { title: 'Enviar código', description: 'Faça um fork, crie uma branch e abra um Pull Request. Todas as contribuições são bem-vindas.', cta: 'Ver PRs abertas' },
+      {
+        title: 'Reportar um bug',
+        description:
+          'Encontrou um problema? Abra uma issue no GitHub com o máximo de detalhes possível.',
+        cta: 'Abrir uma issue',
+      },
+      {
+        title: 'Sugerir uma ideia',
+        description: 'Algo está faltando? Descreva em uma issue e a comunidade irá discutir.',
+        cta: 'Fazer uma sugestão',
+      },
+      {
+        title: 'Enviar código',
+        description:
+          'Faça um fork, crie uma branch e abra um Pull Request. Todas as contribuições são bem-vindas.',
+        cta: 'Ver PRs abertas',
+      },
     ],
     stackTitle: 'Stack técnico',
     stackSubtitle: 'As tecnologias que fazem o DocHunt funcionar.',
     openTitle: 'Por que open source?',
     openSubtitle: 'Transparência, confiança e colaboração.',
     openItems: [
-      { title: 'Transparência total', description: 'Audite cada linha de código e verifique que seus arquivos nunca são armazenados.' },
-      { title: 'Melhoria contínua', description: 'Contribuições externas melhoram a detecção e adicionam novos formatos de arquivo.' },
-      { title: 'Comunidade ativa', description: 'Issues, discussões, PRs — o projeto evolui com o feedback dos usuários.' },
+      {
+        title: 'Transparência total',
+        description:
+          'Audite cada linha de código e verifique que seus arquivos nunca são armazenados.',
+      },
+      {
+        title: 'Melhoria contínua',
+        description:
+          'Contribuições externas melhoram a detecção e adicionam novos formatos de arquivo.',
+      },
+      {
+        title: 'Comunidade ativa',
+        description: 'Issues, discussões, PRs — o projeto evolui com o feedback dos usuários.',
+      },
+    ],
+  },
+  privacyPage: {
+    badge: 'Legal',
+    title: 'Política de privacidade',
+    subtitle:
+      'O DocHunt foi construído com a privacidade no centro. Aqui está exatamente o que acontece com seus dados.',
+    lastUpdated: 'Última atualização: abril 2025',
+    sections: [
+      {
+        title: 'Os arquivos nunca são armazenados',
+        content:
+          'Os arquivos enviados para análise são processados em memória e descartados imediatamente. Nunca os gravamos em disco, armazenamos em banco de dados ou transmitimos a terceiros.',
+      },
+      {
+        title: 'Nenhum dado pessoal coletado',
+        content:
+          'O DocHunt não coleta nomes, endereços de e-mail ou informações de identificação pessoal, a menos que você crie uma conta. Os dados da conta (e-mail + senha com hash) são armazenados apenas para autenticá-lo.',
+      },
+      {
+        title: 'Cookies e análises',
+        content:
+          'Usamos um cookie de sessão estritamente para gerenciar o estado de autenticação. Não usamos cookies de publicidade, fingerprinting ou rastreadores de terceiros.',
+      },
+      {
+        title: 'Serviços de terceiros',
+        content:
+          'O micro-serviço Python que analisa arquivos é executado em nossa própria infraestrutura. Nenhum conteúdo ou metadado de arquivo é enviado a APIs externas.',
+      },
+      {
+        title: 'Retenção de dados',
+        content:
+          'Os dados de sessão são armazenados em um cookie no seu dispositivo e expiram quando você fecha o navegador. Nenhum armazenamento de sessão no servidor é usado além do fluxo de autenticação.',
+      },
+      {
+        title: 'Contato',
+        content:
+          'Para qualquer dúvida de privacidade, entre em contato em privacy@dochunt.info ou abra um issue no GitHub.',
+      },
+    ],
+  },
+  termsPage: {
+    badge: 'Legal',
+    title: 'Termos de serviço',
+    subtitle: 'Regras simples e justas para usar o DocHunt.',
+    lastUpdated: 'Última atualização: abril 2025',
+    sections: [
+      {
+        title: 'Aceitação',
+        content:
+          'Ao usar o DocHunt, você concorda com estes Termos de Serviço. Se você não concordar, por favor não use o serviço.',
+      },
+      {
+        title: 'Descrição do serviço',
+        content:
+          'O DocHunt é uma ferramenta de análise de metadados oferecida gratuitamente durante a fase beta aberta. Reservamo-nos o direito de modificar, suspender ou descontinuar o serviço a qualquer momento.',
+      },
+      {
+        title: 'Uso aceitável',
+        content:
+          'Você só pode enviar arquivos que sejam seus ou que esteja autorizado a analisar. É estritamente proibido usar o DocHunt para processar arquivos de terceiros sem consentimento explícito.',
+      },
+      {
+        title: 'Propriedade intelectual',
+        content:
+          'O DocHunt é open source sob licença MIT. O código está no GitHub. Você pode fazer fork, modificar e redistribuir sob a mesma licença. O nome e o logo permanecem propriedade dos mantenedores.',
+      },
+      {
+        title: 'Isenção de garantias',
+        content:
+          'O DocHunt é fornecido "como está", sem garantia de qualquer tipo. Não garantimos que o serviço seja ininterrupto ou que os resultados da análise sejam completos e precisos.',
+      },
+      {
+        title: 'Limitação de responsabilidade',
+        content:
+          'Na medida permitida por lei, o DocHunt e seus colaboradores não serão responsáveis por danos diretos ou indiretos decorrentes do uso do serviço.',
+      },
+      {
+        title: 'Alterações nos termos',
+        content:
+          'Podemos atualizar estes termos a qualquer momento. O uso continuado do DocHunt após uma alteração constitui aceitação dos novos termos.',
+      },
+      {
+        title: 'Contato',
+        content:
+          'Dúvidas sobre os termos? Escreva para legal@sentrak.info ou abra uma discussão no GitHub.',
+      },
     ],
   },
   backToTop: 'Voltar ao topo',
