@@ -21,9 +21,9 @@ router.post('/api/analyze/image', [AnalyzeController, 'handleImage']).as('analyz
 // Root → redirect to browser preferred language
 router.get('/', [HomeController, 'root']).as('home')
 
-const LOCALE_REGEX = /^(en|fr|es|de|pt|ar|zh|ja|hi)$/
+const LOCALE_REGEX = /^(en|fr|es|de)$/
 
-// Locale routes: /en  /fr  /es  /de  /pt
+// Locale routes: /en  /fr  /es  /de
 router.get('/:locale', [HomeController, 'index']).where('locale', LOCALE_REGEX).as('home.locale')
 
 // Sub-pages

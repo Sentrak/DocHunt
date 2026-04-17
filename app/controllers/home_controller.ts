@@ -1,6 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 
-const LOCALES = ['en', 'fr', 'es', 'de', 'pt', 'ar', 'zh', 'ja', 'hi'] as const
+const LOCALES = ['en', 'fr', 'es', 'de'] as const
 type Locale = (typeof LOCALES)[number]
 
 export default class HomeController {
