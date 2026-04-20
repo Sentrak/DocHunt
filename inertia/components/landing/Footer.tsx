@@ -62,7 +62,17 @@ export default function Footer() {
 
         <div className="mt-12 pt-6 border-t border-edge flex flex-wrap justify-between items-center gap-3 text-[12px] text-mute">
           <span>© 2025 DocHunt — dochunt.info</span>
-          <span>{t.footer.builtWith}</span>
+          <span>
+            {t.footer.builtWith}{' '}
+            <a
+              href="https://sentrak.info"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-cream transition-colors"
+            >
+              sentrak.info
+            </a>
+          </span>
         </div>
       </div>
     </footer>
