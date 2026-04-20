@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { ScanSearch, ChevronDown, Menu, X, Sun, Moon } from 'lucide-react'
+import { ChevronDown, Menu, X, Sun, Moon } from 'lucide-react'
 import { router, usePage } from '@inertiajs/react'
 import { useLocale } from '~/i18n/context'
 import { LOCALES, LOCALE_LABELS } from '~/i18n/types'
@@ -80,9 +80,7 @@ export default function Nav() {
             onClick={() => navigate(`/${locale}`)}
             className="flex items-center gap-2.5 font-mono font-bold text-xl text-cream cursor-pointer"
           >
-            <div className="w-9 h-9 rounded-[10px] bg-gradient-to-br from-amber-brand to-amber-dim flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.3)]">
-              <ScanSearch className="w-[18px] h-[18px] text-bg-dark" />
-            </div>
+            <img src="/logo.png" alt="DocHunt" className="w-9 h-9 object-contain" />
             DocHunt
           </button>
 
