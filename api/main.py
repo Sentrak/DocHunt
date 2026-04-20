@@ -1,14 +1,17 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routers.pdf import router as pdf_router
 from routers.image import router as image_router
 
+_is_prod = os.getenv("ENV") == "production"
+
 app = FastAPI(
     title="DocHunt API",
     description="Micro-service d'analyse de métadonnées de fichiers.",
     version="2.0.0",
-    docs_url="/docs",
+    docs_url=None if _is_prod else "/docs",
     redoc_url=None,
 )
 
