@@ -796,6 +796,9 @@ const SENSITIVE_TYPE_COLOR: Record<string, string> = {
   postal_fr: 'text-lime-400',
   plate_fr: 'text-teal-400',
   ssn_fr: 'text-rose-600',
+  ssn_us: 'text-rose-500',
+  username: 'text-indigo-400',
+  password: 'text-red-600',
   date: 'text-blue-400',
   ner_person: 'text-pink-300',
   ner_loc: 'text-emerald-400',
@@ -992,6 +995,9 @@ const TYPE_GROUP: Record<string, string> = {
   plate_fr: 'Localisation',
   ner_loc: 'Localisation',
   ssn_fr: 'Documents',
+  ssn_us: 'Documents',
+  username: 'Identité',
+  password: 'Identité',
   date: 'Documents',
 }
 

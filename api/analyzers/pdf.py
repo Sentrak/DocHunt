@@ -47,32 +47,32 @@ _GPS_XMP_KEYS = {"exif:GPSLatitude", "exif:GPSLongitude", "GPS"}
 # ── Regex données sensibles ────────────────────────────────────────────────────
 
 _RE_IPV4 = re.compile(
-    r'\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\b'
+    r'(?:\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}'
 )
 
 _RE_EMAIL = re.compile(
-    r'\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b'
+    r'[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+'
 )
 
 # Téléphone FR étendu : +33 (0)1 56 65 89 98 · 01.56.65.89.98 · 06-12-34-56-78
 # Capture aussi les mobiles FR et les formats internationaux courants
 _RE_PHONE = re.compile(
     r'(?:'
-    r'(?:\+33|0033)[\s.\-]?\(?0?\)?[\s.\-]?[1-9](?:[\s.\-]?\d{2}){4}'  # +33 (0)X ou 0033 X
-    r'|0[1-9](?:[\s.\-]?\d{2}){4}'                                        # 0X XX XX XX XX
-    r'|\+(?!33)\d{1,3}[\s.\-]?\(?\d{1,4}\)?[\s.\-]?\d{1,4}[\s.\-]?\d{1,9}'  # international hors FR
+    r'(?:\+33|0033)[\s.\-]?\(?0?\)?[\s.\-]?[1-9](?:[\s.\-]?\d{2}){4}'
+    r'|0[1-9](?:[\s.\-]?\d{2}){4}'
+    r'|\+(?!33)\d{1,3}[\s.\-]?\(?\d{1,4}\)?[\s.\-]?\d{1,4}[\s.\-]?\d{1,9}'
     r')'
 )
 
-# Dates : DD/MM/YYYY · YYYY-MM-DD · "12 mars 2024" · "12 March 2024"
+# Dates : DD/MM/YYYY · DD-MM-YYYY · DD.MM.YYYY (validation stricte jour/mois)
 _RE_DATE = re.compile(
-    r'\b(?:\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}'
-    r'|\d{4}[-/.]\d{2}[-/.]\d{2}'
-    r'|\d{1,2}\s+(?:janvier|février|mars|avril|mai|juin|juillet|ao[uû]t'
-    r'|septembre|octobre|novembre|décembre'
-    r'|january|february|march|april|may|june|july|august'
-    r'|september|october|november|december)\s+\d{4})\b',
-    re.IGNORECASE,
+    r'(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1'
+    r'|(?:(?:29|30)(\/|-|\.)(?:0?[13-9]|1[0-2])\2))'
+    r'(?:(?:1[6-9]|[2-9]\d)?\d{2})'
+    r'|(?:29(\/|-|\.)0?2\3'
+    r'(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])'
+    r'|(?:16|[2468][048]|[3579][26])00))'
+    r'|(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:0?[1-9]|1[0-2])\4(?:(?:1[6-9]|[2-9]\d)?\d{2})'
 )
 
 # IBAN (FR et international)
@@ -88,6 +88,24 @@ _RE_POSTAL_FR = re.compile(
 # Numéro de sécurité sociale français (15 chiffres avec espaces optionnels)
 _RE_SSN_FR = re.compile(
     r'\b[12]\s?\d{2}\s?(?:0[1-9]|1[0-2])\s?\d{2}\s?\d{3}\s?\d{3}\s?\d{2}\b'
+)
+
+# Numéro de sécurité sociale américain (SSN US) : XXX-XX-XXXX
+_RE_SSN_US = re.compile(
+    r'(?!0{3})(?!6{3})[0-8]\d{2}-(?!0{2})\d{2}-(?!0{4})\d{4}'
+)
+
+# Username : 3 à 15 caractères alphanumériques, tirets ou underscores
+_RE_USERNAME = re.compile(
+    r'(?:username|user|login|identifiant|pseudo|handle)\s*[:\=]\s*([a-z0-9_\-]{3,15})',
+    re.IGNORECASE,
+)
+
+# Mot de passe fort : min 8 car., majuscule, minuscule, chiffre, caractère spécial
+_RE_PASSWORD = re.compile(
+    r'(?:password|mot\s*de\s*passe|passwd|pwd|mdp)\s*[:\=]\s*'
+    r'(?=\S*[A-Z])(?=\S*[a-z])(?=\S*[0-9])(?=\S*[#?!@$ %^&*-])\S{8,}',
+    re.IGNORECASE,
 )
 
 # Personne avec civilité : M. / Mr / Mme / Madame / Mademoiselle / Mlle / Dr / Me / Maître
@@ -366,7 +384,16 @@ def _extract_sensitive_data(text: str) -> list[SensitiveMatch]:
 
     # ── Documents ────────────────────────────────────────────────────────────
     for m in _RE_SSN_FR.finditer(text):
-        _add("ssn_fr", "N° Sécurité sociale", m.group())
+        _add("ssn_fr", "N° Sécu (FR)", m.group())
+
+    for m in _RE_SSN_US.finditer(text):
+        _add("ssn_us", "SSN (US)", m.group())
+
+    for m in _RE_USERNAME.finditer(text):
+        _add("username", "Nom d'utilisateur", m.group(1))
+
+    for m in _RE_PASSWORD.finditer(text):
+        _add("password", "Mot de passe", m.group())
 
     for m in _RE_DATE.finditer(text):
         _add("date", "Date", m.group())
