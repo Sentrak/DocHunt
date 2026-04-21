@@ -30,6 +30,7 @@ jobs:
           port: 52200
           source: "build/"
           target: "/var/www/dochunt/"
+          overwrite: true
 
       - name: Restart app
         uses: appleboy/ssh-action@v1
@@ -41,5 +42,5 @@ jobs:
           script: |
             cp /var/www/dochunt/.env /var/www/dochunt/build/.env
             ln -sfn /var/www/dochunt/tmp /var/www/dochunt/build/tmp
-            cd /var/www/dochunt/build && node ace migration:run
+            cd /var/www/dochunt/build && node ace migration:run --force
             pm2 restart dochunt --update-env
