@@ -1,9 +1,11 @@
 import asyncio
 import os
+import time
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from analyzers.image import ImageAnalyzer
+from logger import logger
 from config import (
     ALLOWED_IMAGE_EXTENSIONS,
     ANALYSIS_TIMEOUT,
@@ -51,33 +53,39 @@ def _validate_image(data: bytes, filename: str) -> None:
 
 @router.post("/image", response_model=ImageAnalysisResult)
 async def analyze_image(file: UploadFile = File(...)) -> ImageAnalysisResult:
-    """
-    Analyse les métadonnées EXIF d'une image.
-
-    - Formats acceptés : JPEG, PNG, WebP, GIF, ICO
-    - Validation magic bytes (pas uniquement l'extension)
-    - Taille max : 20 Mo
-    - Traitement en mémoire uniquement
-    """
     data = await file.read()
     filename = file.filename or "image.jpg"
 
-    _validate_image(data, filename)
+    logger.info("[IMG] Received filename=%s size=%d bytes", filename, len(data))
 
+    _validate_image(data, filename)
+    logger.debug("[IMG] Validation OK")
+
+    t0 = time.perf_counter()
     try:
         result = await asyncio.wait_for(
             asyncio.to_thread(_image_analyzer.analyze, data, filename),
             timeout=ANALYSIS_TIMEOUT,
         )
     except asyncio.TimeoutError:
+        logger.warning("[IMG] Analysis timed out after %ds for %s", ANALYSIS_TIMEOUT, filename)
         raise HTTPException(
             status_code=408,
             detail="L'analyse a dépassé le délai maximum autorisé.",
         )
     except Exception as e:
+        logger.error("[IMG] Analysis failed for %s: %s", filename, e)
         raise HTTPException(
             status_code=422,
             detail=f"Impossible d'analyser cette image : {str(e)}",
         )
 
+    elapsed = time.perf_counter() - t0
+    logger.info(
+        "[IMG] Done in %.3fs — score=%d fields=%d warnings=%d",
+        elapsed,
+        result.risk_score,
+        len(result.fields),
+        len(result.warnings),
+    )
     return result

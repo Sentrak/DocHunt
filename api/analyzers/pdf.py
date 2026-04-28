@@ -8,6 +8,7 @@ import pikepdf
 import pdfplumber
 
 from analyzers.base import BaseAnalyzer
+from logger import logger
 from models.result import PdfAnalysisResult, MetadataField, SensitiveMatch
 
 if TYPE_CHECKING:
@@ -246,6 +247,8 @@ class PdfAnalyzer(BaseAnalyzer):
             pdf_version = str(pdf.pdf_version)
             encrypted = pdf.is_encrypted
 
+            logger.debug("[PDF] pages=%d version=%s encrypted=%s", page_count, pdf_version, encrypted)
+
             if encrypted:
                 warnings.append("Le PDF est chiffré : certaines métadonnées peuvent être inaccessibles.")
 
@@ -260,6 +263,8 @@ class PdfAnalyzer(BaseAnalyzer):
                     value = _parse_pdf_date(value)
                 fields.append(MetadataField(key=key, label=label, value=value, sensitive=sensitive))
 
+            logger.debug("[PDF] docinfo: %d field(s) found", len(fields))
+
             # ── Métadonnées XMP ────────────────────────────────────────────
             try:
                 with pdf.open_metadata() as meta:
@@ -270,6 +275,8 @@ class PdfAnalyzer(BaseAnalyzer):
                             break
             except Exception:
                 pass  # XMP absent ou corrompu
+
+            logger.debug("[PDF] XMP: gps=%s", has_gps)
 
             # ── JavaScript ────────────────────────────────────────────────
             try:
@@ -286,6 +293,8 @@ class PdfAnalyzer(BaseAnalyzer):
             except Exception:
                 pass
 
+            logger.debug("[PDF] javascript=%s", has_javascript)
+
             # ── Fichiers embarqués ────────────────────────────────────────
             try:
                 root = pdf.Root
@@ -296,6 +305,8 @@ class PdfAnalyzer(BaseAnalyzer):
                         warnings.append("Des fichiers sont embarqués dans ce PDF.")
             except Exception:
                 pass
+
+            logger.debug("[PDF] embedded_files=%s", has_embedded_files)
 
             # ── URLs dans le contenu brut ─────────────────────────────────
             try:
@@ -311,11 +322,20 @@ class PdfAnalyzer(BaseAnalyzer):
             except Exception:
                 pass
 
+            logger.debug("[PDF] embedded_urls=%d (capped at 50)", len(embedded_urls))
+
         risk_score = _score(fields, has_javascript, has_embedded_files, has_gps, embedded_urls)
 
         # ── Extraction et analyse du texte ─────────────────────────────────
         text = _extract_text(data)
+        if text:
+            logger.debug("[PDF] text extracted: %d chars", len(text))
+        else:
+            logger.debug("[PDF] text extraction: no text layer (scanned PDF?)")
+
         sensitive_matches = _extract_sensitive_data(text) if text else []
+
+        logger.debug("[PDF] risk_score=%d sensitive_matches=%d", risk_score, len(sensitive_matches))
 
         return PdfAnalysisResult(
             filename=filename,
@@ -361,6 +381,7 @@ def _extract_sensitive_data(text: str) -> list[SensitiveMatch]:
     """
     matches: list[SensitiveMatch] = []
     seen: set[tuple[str, str]] = set()
+    _counts: dict[str, int] = {}
 
     def _add(match_type: str, label: str, value: str) -> None:
         value = value.strip()
@@ -368,6 +389,7 @@ def _extract_sensitive_data(text: str) -> list[SensitiveMatch]:
         if key not in seen:
             seen.add(key)
             matches.append(SensitiveMatch(type=match_type, label=label, value=value))
+            _counts[match_type] = _counts.get(match_type, 0) + 1
 
     # ── Identité ──────────────────────────────────────────────────────────────
     for m in _RE_PERSON.finditer(text):
@@ -436,6 +458,9 @@ def _extract_sensitive_data(text: str) -> list[SensitiveMatch]:
     for m in _RE_DATE.finditer(text):
         _add("date", "Date", m.group())
 
+    if _counts:
+        logger.debug("[PDF] regex matches: %s", _counts)
+
     # ── NER spaCy ────────────────────────────────────────────────────────────
     # Complète les regex : détecte les personnes sans titre, les villes/pays,
     # et les organisations que les patterns ci-dessus ne peuvent pas capturer.
@@ -443,23 +468,33 @@ def _extract_sensitive_data(text: str) -> list[SensitiveMatch]:
     try:
         nlp = _get_nlp()
         doc = nlp(text[:100_000])
+        ner_total = len(doc.ents)
+        ner_accepted = 0
+        ner_rejected = 0
         for ent in doc.ents:
             value = ent.text.strip()
             if not _ner_valid(ent.label_, value):
+                ner_rejected += 1
                 continue
             # Déduplication globale : si la valeur exacte est déjà dans seen
             # (capturée par regex ou un autre label NER), on ne la re-ajoute pas
             already = any(v == value for (_, v) in seen)
             if already:
+                ner_rejected += 1
                 continue
+            ner_accepted += 1
             if ent.label_ == "PER":
                 _add("ner_person", "Personne", value)
             elif ent.label_ in ("LOC", "GPE"):
                 _add("ner_loc", "Lieu / Ville / Pays", value)
             elif ent.label_ == "ORG":
                 _add("ner_org", "Organisation", value)
-    except Exception:
-        pass  # spaCy non disponible ou erreur → on continue sans NER
+        logger.debug(
+            "[PDF] NER: total=%d accepted=%d rejected=%d",
+            ner_total, ner_accepted, ner_rejected,
+        )
+    except Exception as e:
+        logger.debug("[PDF] NER unavailable: %s", e)
 
     return matches
 

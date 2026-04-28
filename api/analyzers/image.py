@@ -3,6 +3,7 @@ import io
 from PIL import Image
 
 from analyzers.base import BaseAnalyzer
+from logger import logger
 from models.result import ImageAnalysisResult, MetadataField
 
 # Tag EXIF id → (key, label humain, sensitif)
@@ -103,6 +104,8 @@ class ImageAnalyzer(BaseAnalyzer):
             width, height = img.size
             mode = img.mode
 
+            logger.debug("[IMG] format=%s size=%dx%d mode=%s", fmt, width, height, mode)
+
             try:
                 exif = img.getexif()
             except Exception:
@@ -118,6 +121,8 @@ class ImageAnalyzer(BaseAnalyzer):
                     if not value:
                         continue
                     fields.append(MetadataField(key=key, label=label, value=value, sensitive=sensitive))
+
+                logger.debug("[IMG] EXIF: %d field(s) found", len(fields))
 
                 # ── GPS IFD (tag 34853) ─────────────────────────────────────
                 try:
@@ -143,6 +148,7 @@ class ImageAnalyzer(BaseAnalyzer):
                                 key="GPSLongitude", label="GPS — Longitude",
                                 value=f"{gps_lon:.6f}°", sensitive=True,
                             ))
+                            logger.debug("[IMG] GPS detected: lat=%.6f lon=%.6f", gps_lat, gps_lon)
 
                         alt = gps_ifd.get(6)  # GPSAltitude
                         if alt is not None:
@@ -152,11 +158,14 @@ class ImageAnalyzer(BaseAnalyzer):
                             ))
                 except Exception:
                     pass
+            else:
+                logger.debug("[IMG] no EXIF data found")
 
             if not fields:
                 warnings.append("Aucune métadonnée EXIF trouvée dans cette image.")
 
         risk_score = _score(fields, has_gps)
+        logger.debug("[IMG] risk_score=%d fields=%d has_gps=%s", risk_score, len(fields), has_gps)
 
         return ImageAnalysisResult(
             filename=filename,

@@ -2,8 +2,11 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from logger import setup_logging
 from routers.pdf import router as pdf_router
 from routers.image import router as image_router
+
+setup_logging()
 
 _is_prod = os.getenv("ENV") == "production"
 

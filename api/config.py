@@ -1,3 +1,7 @@
+import os
+
+DEBUG_ANALYSIS = os.getenv("DEBUG_ANALYSIS", "false").lower() == "true"
+
 MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 Mo
 ANALYSIS_TIMEOUT = 10             # secondes
 
